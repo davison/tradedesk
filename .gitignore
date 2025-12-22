@@ -4,3 +4,7 @@ __pycache__
 .coverage
 .local
 .env
+.env.local
+*.egg-info/
+*.egg
+.eggs/
