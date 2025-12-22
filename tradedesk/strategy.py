@@ -68,6 +68,9 @@ class BaseStrategy(abc.ABC):
         """
         self.client = client
         self.epics = self.EPICS if self.EPICS else []
+        # Initialize the watchdog timestamp
+        self.last_update = datetime.now(timezone.utc)
+        self.watchdog_threshold = 60  # seconds
         
         if not self.epics:
             log.warning(
@@ -252,10 +255,28 @@ class BaseStrategy(abc.ABC):
         
         log.info("Lightstreamer subscribed to %s", ", ".join(item_names))
         
+        async def _heartbeat_monitor():
+            """Check if the stream has gone silent."""
+            while True:
+                await asyncio.sleep(10) # Check every 10s
+                delta = (datetime.now(timezone.utc) - self.last_update).total_seconds()
+                
+                if delta > self.watchdog_threshold:
+                    log.warning(
+                        "⚠️ HEARTBEAT ALERT: No updates for %s in %.1fs. "
+                        "Connection may be stale.", 
+                        ", ".join(self.epics), delta
+                    )
+                else:
+                    log.debug("Heartbeat OK: Last update %.1fs ago", delta)
+
         # Consumer task - dispatches updates to strategy
         async def consumer():
             while True:
                 payload = await queue.get()
+                # Update the watchdog timestamp
+                self.last_update = datetime.now(timezone.utc)
+                
                 await self.on_price_update(
                     epic=payload["epic"],
                     bid=payload["bid"],
@@ -264,17 +285,16 @@ class BaseStrategy(abc.ABC):
                     raw_data=payload["raw"]
                 )
         
-        task = asyncio.create_task(consumer())
+        consumer_task = asyncio.create_task(consumer())
+        monitor_task = asyncio.create_task(_heartbeat_monitor())
         
         try:
-            while True:
-                await asyncio.sleep(3600)
+            await asyncio.Future() 
+
         except asyncio.CancelledError:
             log.info("%s cancelled – cleaning up Lightstreamer", self.__class__.__name__)
+
         finally:
+            consumer_task.cancel()
+            monitor_task.cancel()
             ls_client.disconnect()
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
