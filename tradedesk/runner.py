@@ -47,7 +47,6 @@ def configure_logging(level: str = "INFO") -> None:
 
 
 async def _run_strategies_async(
-    client: IGClient,
     strategy_instances: List[BaseStrategy]
 ) -> None:
     """
@@ -159,7 +158,7 @@ def run_strategies(
     log.info("-" * 70)
     
     try:
-        asyncio.run(_run_strategies_async(client, strategy_instances))
+        asyncio.run(_run_strategies_async(strategy_instances))
     except KeyboardInterrupt:
         log.info("")
         log.info("-" * 70)

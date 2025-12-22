@@ -166,6 +166,9 @@ class BaseStrategy(abc.ABC):
         
         queue: asyncio.Queue[Dict[str, Any]] = asyncio.Queue()
         
+        # --- GET THE CURRENT LOOP ---
+        loop = asyncio.get_running_loop()
+
         # Create Lightstreamer client
         ls_client = LightstreamerClient(self.client.ls_url, "DEFAULT")
         ls_client.connectionDetails.setUser(self.client.client_id or self.client.account_id or "")
@@ -216,7 +219,9 @@ class BaseStrategy(abc.ABC):
                             "MARKET_STATE": update.getValue("MARKET_STATE"),
                         },
                     }
-                    queue.put_nowait(data)
+                    
+                    loop.call_soon_threadsafe(queue.put_nowait, data)
+
                 except Exception as e:
                     log.exception("Error processing Lightstreamer update: %s", e)
             
