@@ -64,3 +64,5 @@ class MFI(Indicator):
         self.positive_flows.clear()
         self.negative_flows.clear()
 
+    def warmup_periods(self) -> int:
+        return self.period + 1

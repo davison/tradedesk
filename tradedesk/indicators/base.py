@@ -23,3 +23,9 @@ class Indicator(abc.ABC):
         """Reset indicator internal state to its initial (empty) condition."""
         raise NotImplementedError
 
+    def warmup_periods(self) -> int:
+        """
+        Number of *completed candles* required before ready() can become True.
+        Default 0 for backwards compatibility with custom indicators.
+        """
+        return 0

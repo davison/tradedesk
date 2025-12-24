@@ -149,6 +149,9 @@ class MACD(Indicator):
         self.fast_ema = None
         self.slow_ema = None
         self.signal_ema = None
+
+    def warmup_periods(self) -> int:
+        return self.slow_period + self.signal_period - 1
     
     def __repr__(self) -> str:
         return (

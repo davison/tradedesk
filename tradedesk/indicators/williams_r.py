@@ -38,3 +38,6 @@ class WilliamsR(Indicator):
         self.highs.clear()
         self.lows.clear()
         self.closes.clear()
+    
+    def warmup_periods(self) -> int:
+        return self.period
