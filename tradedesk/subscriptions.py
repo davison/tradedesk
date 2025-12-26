@@ -6,11 +6,25 @@ Strategies declare their data needs using these subscription types,
 and the framework handles the Lightstreamer subscription setup.
 """
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
+@dataclass
+class Subscription(ABC):
+    """Base class for different subscription types."""
+    epic: str
+
+    @abstractmethod
+    def get_item_name(self) -> str:
+        ...
+    
+    @abstractmethod
+    def get_fields(self) -> list[str]:
+        ...
+    
 
 @dataclass
-class MarketSubscription:
+class MarketSubscription(Subscription):
     """
     Subscribe to live tick-by-tick price updates for an instrument.
     
@@ -22,7 +36,6 @@ class MarketSubscription:
             MarketSubscription("CS.D.GBPUSD.TODAY.IP"),
         ]
     """
-    epic: str
     
     def get_item_name(self) -> str:
         """Returns Lightstreamer item name format."""
@@ -34,7 +47,7 @@ class MarketSubscription:
 
 
 @dataclass
-class ChartSubscription:
+class ChartSubscription(Subscription):
     """
     Subscribe to OHLCV candle data for an instrument at a specific timeframe.
     
@@ -53,7 +66,6 @@ class ChartSubscription:
             ChartSubscription("CS.D.EURUSD.TODAY.IP", "1MINUTE"),
         ]
     """
-    epic: str
     period: str
     fields: list[str] = field(default=None)
     
