@@ -71,6 +71,7 @@ class BaseStrategy(abc.ABC):
     # Default polling interval when Lightstreamer is unavailable
     POLL_INTERVAL = 5  # seconds
     
+    # TODO: abstract provider
     def __init__(self, client: IGClient, config: dict = None):
         """
         Initialize the strategy.
@@ -187,6 +188,28 @@ class BaseStrategy(abc.ABC):
             epic, period = epic_period
             self.prime_chart(ChartSubscription(epic, period), candles)
 
+    # TODO: abstract provider
+    async def warmup_from_ig(self) -> None:
+        """
+        Fetch historical candles from IG REST to warm up chart history and indicators.
+        """
+        enabled = self.config.get("warmup", {}).get("enabled", True)
+        if not enabled:
+            return
+
+        history: dict[tuple[str, str], list[Candle]] = {}
+
+        for (epic, period), warmup in self.chart_warmup_plan().items():
+            if warmup <= 0:
+                continue
+            try:
+                candles = await self.client.get_historical_candles(epic, period, warmup)
+                history[(epic, period)] = candles or []
+            except Exception:
+                log.exception("Warmup fetch failed for %s %s; continuing without warmup", epic, period)
+
+        self.warmup_from_history(history)
+
     @abc.abstractmethod
     async def on_price_update(
         self,
@@ -248,7 +271,12 @@ class BaseStrategy(abc.ABC):
                 sub_display.append(f"CHART:{sub.epic}:{sub.period}")
         
         log.info("%s started for %s", self.__class__.__name__, ", ".join(sub_display))
-        
+
+        try:
+            await self.warmup_from_ig()
+        except Exception:
+            log.exception("Warmup failed; continuing without warmup")
+
         # Check if Lightstreamer is available
         if self._is_lightstreamer_available():
             await self._run_streaming()

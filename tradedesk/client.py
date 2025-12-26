@@ -3,8 +3,9 @@ import asyncio
 import logging
 import time
 from typing import Any
-
 import aiohttp
+from datetime import datetime, timezone
+from .chartdata import Candle
 from .config import settings
 
 log = logging.getLogger(__name__)
@@ -304,6 +305,100 @@ class IGClient:
         # For this refactor, we just re-auth. The original code did a manual retry here.
         pass 
 
+    def _period_to_rest_resolution(self, period: str) -> str:
+        """
+        Map tradedesk period strings to IG REST resolution strings.
+        IG REST uses e.g. MINUTE, MINUTE_5, HOUR, HOUR_4, DAY, WEEK.
+        """
+        p = period.upper()
+        mapping = {
+            "1MINUTE": "MINUTE",
+            "5MINUTE": "MINUTE_5",
+            "15MINUTE": "MINUTE_15",
+            "30MINUTE": "MINUTE_30",
+            "HOUR": "HOUR",
+            "4HOUR": "HOUR_4",
+            "DAY": "DAY",
+            "WEEK": "WEEK",
+
+            # Allow passing IG formats through
+            "MINUTE": "MINUTE",
+            "MINUTE_5": "MINUTE_5",
+            "MINUTE_15": "MINUTE_15",
+            "MINUTE_30": "MINUTE_30",
+            "HOUR": "HOUR",
+            "HOUR_4": "HOUR_4",
+        }
+        return mapping.get(p, p)
+
+    async def get_historical_candles(self, epic: str, period: str, num_points: int) -> list[Candle]:
+        """
+        Fetch the most recent `num_points` candles for (epic, period) via IG REST /prices.
+
+        Returns candles ordered oldest -> newest.
+        """
+        if num_points <= 0:
+            return []
+
+        resolution = self._period_to_rest_resolution(period)
+        payload = await self._request("GET", f"/prices/{epic}/{resolution}/{num_points}")
+
+        prices = payload.get("prices", []) or []
+        candles: list[Candle] = []
+
+        for p in prices:
+            # IG fields: snapshotTimeUTC, openPrice/highPrice/lowPrice/closePrice {bid, ask},
+            # lastTradedVolume
+            ts = p.get("snapshotTimeUTC") or p.get("snapshotTime")
+            if not ts:
+                continue
+
+            # Normalize timestamp to something Candle accepts (keep UTC).
+            # Your streaming candles use ISO strings ending with Z.
+            if ts.endswith("Z"):
+                timestamp = ts
+            else:
+                timestamp = ts + "Z"
+
+            def mid(price_obj: dict | None) -> float | None:
+                if not isinstance(price_obj, dict):
+                    return None
+                bid = price_obj.get("bid")
+                ask = price_obj.get("ask")
+                if bid is None or ask is None:
+                    return None
+                return (float(bid) + float(ask)) / 2.0
+
+            o = mid(p.get("openPrice"))
+            h = mid(p.get("highPrice"))
+            l = mid(p.get("lowPrice"))
+            c = mid(p.get("closePrice"))
+            if c is None:
+                continue
+
+            # Fallbacks if any component missing (rare, but safe)
+            open_p = o if o is not None else c
+            high_p = h if h is not None else c
+            low_p = l if l is not None else c
+
+            volume = float(p.get("lastTradedVolume") or 0.0)
+
+            candles.append(
+                Candle(
+                    timestamp=timestamp,
+                    open=open_p,
+                    high=high_p,
+                    low=low_p,
+                    close=c,
+                    volume=volume,
+                    tick_count=0,
+                )
+            )
+
+        # Defensive sort oldest -> newest
+        candles.sort(key=lambda x: x.timestamp)
+        return candles
+
     async def get_market_snapshot(self, epic: str) -> dict[str, Any]:
         """Return the latest market snapshot for the given EPIC."""
         return await self._request("GET", f"/markets/{epic}")
@@ -330,3 +425,84 @@ class IGClient:
             "forceOpen": force_open,
         }
         return await self._request("POST", "/positions/otc", json=order)
+    
+    def _period_to_rest_resolution(self, period: str) -> str:
+        """
+        Map tradedesk chart period strings to IG REST resolution strings.
+        """
+        p = period.upper()
+        mapping = {
+            "1MINUTE": "MINUTE",
+            "5MINUTE": "MINUTE_5",
+            "15MINUTE": "MINUTE_15",
+            "30MINUTE": "MINUTE_30",
+            "HOUR": "HOUR",
+            "4HOUR": "HOUR_4",
+            "DAY": "DAY",
+            "WEEK": "WEEK",
+            # Allow passing IG formats through
+            "MINUTE": "MINUTE",
+            "MINUTE_5": "MINUTE_5",
+            "MINUTE_15": "MINUTE_15",
+            "MINUTE_30": "MINUTE_30",
+            "HOUR_4": "HOUR_4",
+        }
+        return mapping.get(p, p)
+
+    async def get_historical_candles(self, epic: str, period: str, num_points: int) -> list[Candle]:
+        """
+        Fetch the most recent `num_points` candles for (epic, period) via IG REST /prices.
+
+        Returns candles ordered oldest -> newest.
+        """
+        if num_points <= 0:
+            return []
+
+        resolution = self._period_to_rest_resolution(period)
+        payload = await self._request("GET", f"/prices/{epic}/{resolution}/{num_points}")
+
+        prices = payload.get("prices") or []
+        candles: list[Candle] = []
+
+        def mid(price_obj) -> float | None:
+            if not isinstance(price_obj, dict):
+                return None
+            bid = price_obj.get("bid")
+            ask = price_obj.get("ask")
+            if bid is None or ask is None:
+                return None
+            return (float(bid) + float(ask)) / 2.0
+
+        for p in prices:
+            ts = p.get("snapshotTimeUTC") or p.get("snapshotTime")
+            if not ts:
+                continue
+            timestamp = ts if ts.endswith("Z") else ts + "Z"
+
+            o = mid(p.get("openPrice"))
+            h = mid(p.get("highPrice"))
+            l = mid(p.get("lowPrice"))
+            c = mid(p.get("closePrice"))
+            if c is None:
+                continue
+
+            open_p = o if o is not None else c
+            high_p = h if h is not None else c
+            low_p = l if l is not None else c
+
+            volume = float(p.get("lastTradedVolume") or 0.0)
+
+            candles.append(
+                Candle(
+                    timestamp=timestamp,
+                    open=open_p,
+                    high=high_p,
+                    low=low_p,
+                    close=c,
+                    volume=volume,
+                    tick_count=0,
+                )
+            )
+
+        candles.sort(key=lambda x: x.timestamp)  # oldest -> newest
+        return candles
