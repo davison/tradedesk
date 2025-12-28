@@ -21,7 +21,6 @@ class MomentumStrategy(BaseStrategy):
     - Stop losses
     - Order execution
     
-    Note: Uses legacy EPICS format for backward compatibility.
     """
     
     # Declare which instruments to monitor

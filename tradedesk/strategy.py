@@ -16,11 +16,12 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any
-from .providers import Client
-from .config import settings
-from .subscriptions import MarketSubscription, ChartSubscription
-from .chartdata import Candle, ChartHistory
-from .indicators.base import Indicator
+from tradedesk.config import settings
+from tradedesk.subscriptions import MarketSubscription, ChartSubscription
+from tradedesk.chartdata import Candle, ChartHistory
+from tradedesk.indicators.base import Indicator
+from tradedesk.providers import Client
+from tradedesk.providers.events import MarketData, CandleClose
 
 # ----------------------------------------------------------------------
 # Lightstreamer import – optional for the production daemon.
@@ -331,6 +332,37 @@ class BaseStrategy(abc.ABC):
             
             await asyncio.sleep(self.POLL_INTERVAL)
     
+    async def _handle_event(self, event: MarketData | CandleClose) -> None:
+        """
+        Internal event dispatcher.
+
+        Streamer implementations should call this method only. It updates common
+        bookkeeping (e.g. last_update) and dispatches to the existing strategy
+        callbacks to preserve the current public strategy API.
+        """
+        self.last_update = datetime.now(timezone.utc)
+
+        if isinstance(event, MarketData):
+            await self.on_price_update(
+                epic=event.epic,
+                bid=event.bid,
+                offer=event.offer,
+                timestamp=event.timestamp,
+                raw_data=event.raw,
+            )
+            return
+
+        if isinstance(event, CandleClose):
+            await self.on_candle_update(
+                epic=event.epic,
+                period=event.period,
+                candle=event.candle,
+            )
+            return
+
+        # Defensive: should never happen unless someone extends events incorrectly.
+        raise TypeError(f"Unsupported event type: {type(event)!r}")
+
     async def _run_streaming(self) -> None:
         streamer = self.client.get_streamer()
         await streamer.run(self)

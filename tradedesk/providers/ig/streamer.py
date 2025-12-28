@@ -219,7 +219,6 @@ class Lightstreamer(Streamer):
         async def market_consumer():
             while True:
                 payload = await market_queue.get()
-                strategy.last_update = datetime.now(timezone.utc)
                 event = MarketData(
                     epic=payload["epic"],
                     bid=payload["bid"],
@@ -227,18 +226,11 @@ class Lightstreamer(Streamer):
                     timestamp=payload["timestamp"],
                     raw=payload["raw"],
                 )
-                await strategy.on_price_update(
-                    epic=payload["epic"],
-                    bid=payload["bid"],
-                    offer=payload["offer"],
-                    timestamp=payload["timestamp"],
-                    raw_data=payload["raw"],
-                )
+                await strategy._handle_event(event)
 
         async def chart_consumer():
             while True:
                 payload = await chart_queue.get()
-                strategy.last_update = datetime.now(timezone.utc)
 
                 candle_data = payload["candle"]
                 candle = Candle(**candle_data)
@@ -247,11 +239,7 @@ class Lightstreamer(Streamer):
                     period=payload["period"],
                     candle=candle,
                 )
-                await strategy.on_candle_update(
-                    epic=payload["epic"],
-                    period=payload["period"],
-                    candle=candle,
-                )
+                await strategy._handle_event(event)
 
         tasks = [asyncio.create_task(_heartbeat_monitor())]
 
