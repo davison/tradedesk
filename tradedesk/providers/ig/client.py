@@ -362,30 +362,7 @@ class IGClient(Client):
             "forceOpen": force_open,
         }
         return await self._request("POST", "/positions/otc", json=order)
-    
-    def _period_to_rest_resolution(self, period: str) -> str:
-        """
-        Map tradedesk chart period strings to IG REST resolution strings.
-        """
-        p = period.upper()
-        mapping = {
-            "1MINUTE": "MINUTE",
-            "5MINUTE": "MINUTE_5",
-            "15MINUTE": "MINUTE_15",
-            "30MINUTE": "MINUTE_30",
-            "HOUR": "HOUR",
-            "4HOUR": "HOUR_4",
-            "DAY": "DAY",
-            "WEEK": "WEEK",
-            # Allow passing IG formats through
-            "MINUTE": "MINUTE",
-            "MINUTE_5": "MINUTE_5",
-            "MINUTE_15": "MINUTE_15",
-            "MINUTE_30": "MINUTE_30",
-            "HOUR_4": "HOUR_4",
-        }
-        return mapping.get(p, p)
-
+   
     async def get_historical_candles(self, epic: str, period: str, num_points: int) -> list[Candle]:
         """
         Fetch the most recent `num_points` candles for (epic, period) via IG REST /prices.
