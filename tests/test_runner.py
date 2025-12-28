@@ -4,6 +4,7 @@ Tests for the runner module.
 """
 import asyncio
 import sys
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, Mock, patch, call
 import pytest
 from tradedesk.runner import run_strategies, configure_logging, _run_strategies_async
@@ -82,7 +83,7 @@ class TestRunner:
     async def test_run_strategies_async_single(self):
         """Test running a single strategy."""
         mock_strategy = MagicMock()
-        mock_strategy.epics = ["CS.D.EURUSD.CFD.IP"]
+        mock_strategy.subscriptions = [SimpleNamespace(epic="CS.D.EURUSD.CFD.IP")]
         mock_strategy.__class__.__name__ = "TestStrategy"
         mock_strategy.run = AsyncMock()
         
@@ -129,12 +130,12 @@ class TestRunner:
     async def test_run_strategies_async_multiple(self):
         """Test running multiple strategies."""
         mock_strategy1 = MagicMock()
-        mock_strategy1.epics = ["CS.D.EURUSD.CFD.IP"]
+        mock_strategy1.subscriptions = [SimpleNamespace(epic="CS.D.EURUSD.CFD.IP")]
         mock_strategy1.__class__.__name__ = "Strategy1"
         mock_strategy1.run = AsyncMock()
         
         mock_strategy2 = MagicMock()
-        mock_strategy2.epics = ["CS.D.GBPUSD.CFD.IP"]
+        mock_strategy2.subscriptions = [SimpleNamespace(epic="CS.D.GBPUSD.CFD.IP")]
         mock_strategy2.__class__.__name__ = "Strategy2"
         mock_strategy2.run = AsyncMock()
         
