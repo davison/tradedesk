@@ -286,7 +286,7 @@ class BaseStrategy(abc.ABC):
     
     def _is_lightstreamer_available(self) -> bool:
         """Check if all requirements for Lightstreamer are met."""
-        return (
+        return bool(
             LightstreamerClient is not None
             and isinstance(getattr(self.client, "ls_url", None), str)
             and getattr(self.client, "ls_url")

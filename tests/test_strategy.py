@@ -92,9 +92,7 @@ class TestBaseStrategy:
             # Note: The method returns the last condition (ls_xst) if all are truthy
             # Let's check the actual return value
             result = strategy._is_lightstreamer_available()
-            # Since all conditions are truthy and LightstreamerClient is mocked, 
-            # the result should be truthy (specifically, it returns ls_xst which is "XST_TOKEN")
-            assert result == "XST_TOKEN"  # This is what the current implementation does
+            assert result == True  
     
     @pytest.mark.asyncio
     @patch('tradedesk.strategy.settings')
