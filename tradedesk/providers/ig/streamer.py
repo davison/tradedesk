@@ -6,6 +6,7 @@ from typing import Any
 from tradedesk.chartdata import Candle
 from tradedesk.subscriptions import MarketSubscription, ChartSubscription
 from tradedesk.providers import Streamer
+from tradedesk.providers.events import MarketData, CandleClose
 
 log = logging.getLogger(__name__)
 
@@ -219,6 +220,13 @@ class Lightstreamer(Streamer):
             while True:
                 payload = await market_queue.get()
                 strategy.last_update = datetime.now(timezone.utc)
+                event = MarketData(
+                    epic=payload["epic"],
+                    bid=payload["bid"],
+                    offer=payload["offer"],
+                    timestamp=payload["timestamp"],
+                    raw=payload["raw"],
+                )
                 await strategy.on_price_update(
                     epic=payload["epic"],
                     bid=payload["bid"],
@@ -234,7 +242,11 @@ class Lightstreamer(Streamer):
 
                 candle_data = payload["candle"]
                 candle = Candle(**candle_data)
-
+                event = CandleClose(
+                    epic=payload["epic"],
+                    period=payload["period"],
+                    candle=candle,
+                )
                 await strategy.on_candle_update(
                     epic=payload["epic"],
                     period=payload["period"],

@@ -6,5 +6,11 @@ Concrete provider implementations (e.g. IG) should implement these contracts.
 """
 
 from .base import Client, Streamer
+from .events import MarketData, CandleClose
 
-__all__ = ["Client", "Streamer"]
+__all__ = [
+    "Client", 
+    "Streamer",
+    "MarketData",
+    "CandleClose",
+]
