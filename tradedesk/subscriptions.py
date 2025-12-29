@@ -99,31 +99,3 @@ class ChartSubscription(Subscription):
     def get_fields(self) -> list[str]:
         """Returns Lightstreamer fields to subscribe to."""
         return self.fields
-    
-    def get_lightstreamer_period(self) -> str:
-        """
-        Convert period to Lightstreamer format if needed.
-        
-        IG's Lightstreamer uses periods like "MINUTE_1", "MINUTE_5", etc.
-        This handles common aliases.
-        """
-        # Map common formats to IG format
-        period_map = {
-            "1MINUTE": "MINUTE_1",
-            "5MINUTE": "MINUTE_5",
-            "15MINUTE": "MINUTE_15",
-            "30MINUTE": "MINUTE_30",
-            "HOUR": "HOUR_1",
-            "4HOUR": "HOUR_4",
-            "DAY": "DAY",
-            "WEEK": "WEEK",
-            # Also accept IG format directly
-            "MINUTE_1": "MINUTE_1",
-            "MINUTE_5": "MINUTE_5",
-            "MINUTE_15": "MINUTE_15",
-            "MINUTE_30": "MINUTE_30",
-            "HOUR_1": "HOUR_1",
-            "HOUR_4": "HOUR_4",
-        }
-        
-        return period_map.get(self.period.upper(), self.period)
