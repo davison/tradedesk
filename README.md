@@ -41,10 +41,10 @@ If you do not understand the risks of automated trading, **do not use this libra
   - Running one or more async trading strategies
   - Placing trades via the IG REST API
 - A way to structure and run **your own trading logic**
+- A backtesting or simulation engine
 
 ### It is *not*
 - A trading bot that makes decisions for you
-- A backtesting or simulation engine (planned for a future version)
 - A portfolio or risk management system
 - A stable or production-ready framework
 - Suitable for high-frequency trading
