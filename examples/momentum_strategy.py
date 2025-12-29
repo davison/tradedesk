@@ -5,6 +5,7 @@ from collections import deque
 import logging
 
 from tradedesk import BaseStrategy, run_strategies
+from tradedesk.marketdata import MarketData
 from tradedesk.providers.backtest.client import BacktestClient
 from tradedesk.providers.base import Client
 from tradedesk.subscriptions import MarketSubscription
@@ -49,18 +50,12 @@ class MomentumStrategy(BaseStrategy):
             epic: deque(maxlen=lookback) for epic in epics
         }
     
-    async def on_price_update(
-        self,
-        epic: str,
-        bid: float,
-        offer: float,
-        timestamp: str,
-        raw_data: dict[str, Any]
-    ) -> None:
+    async def on_price_update(self, market_data: MarketData) -> None:
         """Process price update and check for signals."""
 
-        mid = (bid + offer) / 2
-
+        mid = (market_data.bid + market_data.offer) / 2
+        epic = market_data.epic
+        
         # Store price
         if epic in self.price_history:
             self.price_history[epic].append(mid)

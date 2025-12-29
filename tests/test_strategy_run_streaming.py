@@ -95,12 +95,12 @@ class TestRunStreaming:
         seen_market = []
         seen_candles = []
 
-        async def on_price_update(epic, bid, offer, timestamp, raw_data):
-            seen_market.append((epic, bid, offer, timestamp, raw_data))
+        async def on_price_update(md):
+            seen_market.append((md))
 
-        async def on_candle_close(epic, period, candle):
-            await strategy_module.BaseStrategy.on_candle_close(strat, epic, period, candle)
-            seen_candles.append((epic, period, candle))
+        async def on_candle_close(cc):
+            await strategy_module.BaseStrategy.on_candle_close(strat, cc)
+            seen_candles.append((cc.epic, cc.period, cc.candle))
 
         strat.on_price_update = on_price_update  # type: ignore
         strat.on_candle_close = on_candle_close  # type: ignore
@@ -159,7 +159,7 @@ class TestRunStreaming:
                     break
 
             assert len(seen_market) == 1
-            assert seen_market[0][0] == "EPIC.MKT"
+            assert seen_market[0].epic == "EPIC.MKT"
 
             assert len(seen_candles) == 1
             assert seen_candles[0][0] == "EPIC.CHT"

@@ -3,7 +3,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from tradedesk import run_strategies
-from tradedesk.marketdata import Candle
+from tradedesk.marketdata import Candle, CandleClose, MarketData
 from tradedesk.providers.backtest.client import BacktestClient
 from tradedesk.strategy import BaseStrategy
 from tradedesk.subscriptions import ChartSubscription
@@ -25,21 +25,21 @@ def test_backtest_replays_candles_and_executes_virtual_trades():
     class TradeOnFirstLast(BaseStrategy):
         SUBSCRIPTIONS = [ChartSubscription("EPIC", "5MINUTE")]
 
-        async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+        async def on_price_update(self, md: MarketData):
             pass
 
-        async def on_candle_close(self, epic, period, candle):
+        async def on_candle_close(self, cc: CandleClose):
             # record receipt
-            seen.append(candle.close)
+            seen.append(cc.candle.close)
 
             # trade: buy on first candle, sell on last candle
-            if candle.close == 10:
-                await self.client.place_market_order(epic=epic, direction="BUY", size=1.0)
-            if candle.close == 12:
-                await self.client.place_market_order(epic=epic, direction="SELL", size=1.0)
+            if cc.candle.close == 10:
+                await self.client.place_market_order(epic=cc.epic, direction="BUY", size=1.0)
+            if cc.candle.close == 12:
+                await self.client.place_market_order(epic=cc.epic, direction="SELL", size=1.0)
 
             # keep default chart storage behavior
-            await super().on_candle_close(epic, period, candle)
+            await super().on_candle_close(cc)
 
     def factory():
         c = BacktestClient.from_history(history)

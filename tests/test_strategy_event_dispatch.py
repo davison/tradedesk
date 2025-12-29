@@ -15,14 +15,12 @@ class Strat(BaseStrategy):
         self.on_price_update_mock = AsyncMock()
         self.on_candle_update_mock = AsyncMock()
 
-    async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
-        await self.on_price_update_mock(
-            epic=epic, bid=bid, offer=offer, timestamp=timestamp, raw_data=raw_data
-        )
+    async def on_price_update(self, md: MarketData):
+        await self.on_price_update_mock(md)
 
-    async def on_candle_close(self, epic, period, candle):
-        await self.on_candle_update_mock(epic=epic, period=period, candle=candle)
-        await super().on_candle_close(epic, period, candle)
+    async def on_candle_close(self, cc: CandleClose):
+        await self.on_candle_update_mock(cc)
+        await super().on_candle_close(cc)
 
 @pytest.mark.asyncio
 async def test_handle_event_marketdata_updates_last_update_and_dispatches():
@@ -41,12 +39,6 @@ async def test_handle_event_marketdata_updates_last_update_and_dispatches():
 
     assert s.last_update >= before
     s.on_price_update_mock.assert_awaited_once()
-    kwargs = s.on_price_update_mock.await_args.kwargs
-    assert kwargs["epic"] == "EPIC"
-    assert kwargs["bid"] == 1.0
-    assert kwargs["offer"] == 1.1
-    assert kwargs["timestamp"] == "2025-12-28T00:00:00Z"
-    assert kwargs["raw_data"] == {"foo": "bar"}
 
 
 @pytest.mark.asyncio

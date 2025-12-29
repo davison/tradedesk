@@ -22,6 +22,7 @@ import logging
 from typing import Any, Dict
 
 from tradedesk import BaseStrategy, run_strategies
+from tradedesk.marketdata import MarketData
 from tradedesk.providers.ig.client import IGClient
 from tradedesk.subscriptions import MarketSubscription
 
@@ -55,37 +56,20 @@ class LogPriceStrategy(BaseStrategy):
         super().__init__(client)
         self._last_mid: float | None = None
     
-    async def on_price_update(
-        self,
-        epic: str,
-        bid: float,
-        offer: float,
-        timestamp: str,
-        raw_data: Dict[str, Any]
-    ) -> None:
+    async def on_price_update(self, market_data: MarketData) -> None:
         """
         Log the price update to stdout as structured JSON.
         
         Only logs when the mid price changes to reduce noise.
         """
-        mid = (bid + offer) / 2
+        mid = (market_data.bid + market_data.offer) / 2
         
         # Only log when mid price changes
         if self._last_mid is None or mid != self._last_mid:
             self._last_mid = mid
             
-            entry = {
-                "timestamp": timestamp,
-                "epic": epic,
-                "mid_price": mid,
-                "bid": bid,
-                "offer": offer,
-                "spread": offer - bid,
-                "raw": raw_data,
-            }
-            
             # Log as structured JSON for easy parsing
-            log.warning("price_update %s", json.dumps(entry))
+            log.warning("price_update %s", json.dumps(market_data))
 
 if __name__ == "__main__":
     run_strategies(

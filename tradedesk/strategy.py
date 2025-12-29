@@ -231,49 +231,25 @@ class BaseStrategy(abc.ABC):
         get_streamer = getattr(self.client, "get_streamer", None)
         return callable(get_streamer)
 
-    async def on_price_update(
-        self,
-        epic: str,
-        bid: float,
-        offer: float,
-        timestamp: str,
-        raw_data: dict[str, Any]
-    ) -> None:
+    async def on_price_update(self, market_data: MarketData) -> None:
         """
         Called whenever a price update is received for a subscribed MARKET.
         
-        This is where you implement tick-level trading logic for market subscriptions.
-        
-        Args:
-            epic: The instrument EPIC code
-            bid: Current bid price
-            offer: Current offer price  
-            timestamp: ISO 8601 timestamp of the update
-            raw_data: Full raw data from the price feed (varies by mode)
+        This is where you implement tick-level trading logic for market subscriptions.        
         """
         pass
     
-    async def on_candle_close(
-        self,
-        epic: str,
-        period: str,
-        candle: Candle
-    ) -> None:
+    async def on_candle_close(self, candle_close: CandleClose) -> None:
         """
         Called when a candle completes for a subscribed CHART.
         
         Default implementation stores candle in chart history.
         Override to implement your candle-based trading logic.
-        
-        Args:
-            epic: The instrument EPIC code
-            period: Timeframe (e.g., "5MINUTE", "HOUR")
-            candle: Completed candle with OHLCV data
         """
         # Store in chart history by default
-        key = (epic, period)
+        key = (candle_close.epic, candle_close.period)
         if key in self.charts:
-            self.charts[key].add_candle(candle)
+            self.charts[key].add_candle(candle_close.candle)
 
     async def run(self) -> None:
         """
@@ -358,22 +334,11 @@ class BaseStrategy(abc.ABC):
         self.last_update = datetime.now(timezone.utc)
 
         if isinstance(event, MarketData):
-            await self.on_price_update(
-                epic=event.epic,
-                bid=event.bid,
-                offer=event.offer,
-                timestamp=event.timestamp,
-                raw_data=event.raw,
-            )
-            return
-
-        if isinstance(event, CandleClose):
-            await self.on_candle_close(
-                epic=event.epic,
-                period=event.period,
-                candle=event.candle,
-            )
-            return
-
-        # Defensive: should never happen unless someone extends events incorrectly.
-        raise TypeError(f"Unsupported event type: {type(event)!r}")
+            await self.on_price_update(event)
+            
+        elif isinstance(event, CandleClose):
+            await self.on_candle_close(event)
+            
+        else:
+            # Defensive: should never happen unless someone extends events incorrectly.
+            raise TypeError(f"Unsupported event type: {type(event)!r}")
