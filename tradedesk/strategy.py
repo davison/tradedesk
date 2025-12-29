@@ -210,19 +210,27 @@ class BaseStrategy(abc.ABC):
         enabled = self.config.get("warmup", {}).get("enabled", True)
         if not enabled:
             return
+        
+        plan = self.chart_warmup_plan()
+        log.debug("Warmup plan: %s", plan)
 
+        if not any(w > 0 for w in plan.values()):
+            log.debug("No warmup required (no indicators registered)")
+            return
+        
         get_hist = getattr(self.client, "get_historical_candles", None)
         if not callable(get_hist):
             log.debug("Client does not support historical candles; skipping warmup")
             return
-
+        
         history: dict[tuple[str, str], list[Candle]] = {}
 
-        for (epic, period), warmup in self.chart_warmup_plan().items():
+        for (epic, period), warmup in plan.items():
             if warmup <= 0:
                 continue
             try:
                 candles = await get_hist(epic, period, warmup)
+                log.debug("Warmup fetched %d candles for %s %s", len(candles or []), epic, period)
                 history[(epic, period)] = candles or []
             except Exception:
                 log.exception(
