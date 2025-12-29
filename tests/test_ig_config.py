@@ -5,7 +5,7 @@ Tests for the config module.
 import os
 from unittest.mock import patch, mock_open
 import pytest
-from tradedesk.config import Settings, settings
+from tradedesk.providers.ig.settings import Settings, settings
 
 class TestSettings:
     """Test the Settings dataclass."""
@@ -19,8 +19,7 @@ class TestSettings:
             assert test_settings.ig_api_key == ""
             assert test_settings.ig_username == ""
             assert test_settings.ig_password == ""
-            assert test_settings.environment == "DEMO"
-            assert test_settings.log_level == "INFO"
+            assert test_settings.ig_environment == "DEMO"
     
     def test_environment_variable_loading(self):
         """Test loading values from environment variables."""
@@ -29,7 +28,6 @@ class TestSettings:
             "IG_USERNAME": "test-user",
             "IG_PASSWORD": "test-pass",
             "IG_ENVIRONMENT": "LIVE",
-            "LOG_LEVEL": "DEBUG"
         }
         
         with patch.dict(os.environ, env_vars):
@@ -38,8 +36,7 @@ class TestSettings:
             assert test_settings.ig_api_key == "test-api-key"
             assert test_settings.ig_username == "test-user"
             assert test_settings.ig_password == "test-pass"
-            assert test_settings.environment == "LIVE"
-            assert test_settings.log_level == "DEBUG"
+            assert test_settings.ig_environment == "LIVE"
     
     def test_validation_success(self):
         """Test successful validation with all required values."""
@@ -47,7 +44,7 @@ class TestSettings:
         test_settings.ig_api_key = "test-key"
         test_settings.ig_username = "test-user"
         test_settings.ig_password = "test-pass"
-        test_settings.environment = "DEMO"
+        test_settings.ig_environment = "DEMO"
         
         # Should not raise an exception
         test_settings.validate()
@@ -71,7 +68,7 @@ class TestSettings:
         test_settings.ig_api_key = "test-key"
         test_settings.ig_username = "test-user"
         test_settings.ig_password = "test-pass"
-        test_settings.environment = "INVALID"  # Invalid value
+        test_settings.ig_environment = "INVALID"  # Invalid value
         
         with pytest.raises(ValueError) as exc_info:
             test_settings.validate()

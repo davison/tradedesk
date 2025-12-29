@@ -30,8 +30,7 @@ class TestBaseStrategy:
         assert isinstance(strategy.last_update, datetime)
     
     @pytest.mark.asyncio
-    @patch('tradedesk.strategy.settings')
-    async def test_run_without_lightstreamer(self, mock_settings):
+    async def test_run_without_lightstreamer(self):
         """Test strategy falls back to polling when Lightstreamer unavailable."""
         mock_client = MagicMock()
         mock_client.get_market_snapshot = AsyncMock(return_value={
@@ -72,8 +71,7 @@ class TestBaseStrategy:
             assert len(strategy.updates) > 0
     
     @pytest.mark.asyncio
-    @patch('tradedesk.strategy.settings')
-    async def test_polling_mode(self, mock_settings):
+    async def test_polling_mode(self):
         """Test polling mode functionality."""
         mock_client = MagicMock()
         
@@ -120,8 +118,7 @@ class TestBaseStrategy:
         assert updates[2]['epic'] == "CS.D.EURUSD.CFD.IP"
     
     @pytest.mark.asyncio
-    @patch('tradedesk.strategy.settings')
-    async def test_polling_mode_exception_handling(self, mock_settings):
+    async def test_polling_mode_exception_handling(self):
         """Test polling mode handles exceptions gracefully."""
         mock_client = MagicMock()
         
@@ -158,8 +155,7 @@ class TestBaseStrategy:
             assert len(updates) == 1
     
     @pytest.mark.asyncio
-    @patch('tradedesk.strategy.settings')
-    async def test_streaming_mode_setup(self, mock_settings, mock_lightstreamer):
+    async def test_streaming_mode_setup(self, mock_lightstreamer):
         """Test Lightstreamer streaming mode setup."""
         mock_client = MagicMock()
         mock_client.ls_url = "https://demo-apd.marketdatasystems.com"
@@ -210,8 +206,7 @@ class TestConcreteStrategy:
     """Test with a concrete strategy implementation."""
     
     @pytest.mark.asyncio
-    @patch('tradedesk.strategy.settings')
-    async def test_complete_strategy_lifecycle(self, mock_settings):
+    async def test_complete_strategy_lifecycle(self):
         """Test a complete strategy from initialization to shutdown."""
         mock_client = MagicMock()
         

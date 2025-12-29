@@ -10,8 +10,8 @@ from collections.abc import Callable
 from tradedesk.providers import Client
 from tradedesk.strategy import BaseStrategy
 
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 def configure_logging(level: str = "INFO", force: bool = False) -> None:
     """

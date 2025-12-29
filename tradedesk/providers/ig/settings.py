@@ -57,8 +57,7 @@ class Settings:
     ig_api_key: str = ""
     ig_username: str = ""
     ig_password: str = ""
-    environment: Literal["DEMO", "LIVE"] = "DEMO"
-    log_level: str = "INFO"
+    ig_environment: Literal["DEMO", "LIVE"] = "DEMO"
 
     def __post_init__(self):
         """
@@ -68,8 +67,7 @@ class Settings:
         self.ig_api_key: str = os.getenv("IG_API_KEY", "")
         self.ig_username: str = os.getenv("IG_USERNAME", "")
         self.ig_password: str = os.getenv("IG_PASSWORD", "")
-        self.environment = os.getenv("IG_ENVIRONMENT", self.environment) # type: ignore
-        self.log_level = os.getenv("LOG_LEVEL", self.log_level)
+        self.ig_environment = os.getenv("IG_ENVIRONMENT", self.ig_environment) # type: ignore
     
     def validate(self) -> None:
         """
@@ -92,40 +90,10 @@ class Settings:
                 "Please set these in your .env file or environment."
             )
         
-        if self.environment not in ("DEMO", "LIVE"):
+        if self.ig_environment not in ("DEMO", "LIVE"):
             raise ValueError(
-                f"IG_ENVIRONMENT must be 'DEMO' or 'LIVE', got '{self.environment}'"
+                f"IG_ENVIRONMENT must be 'DEMO' or 'LIVE', got '{self.ig_environment}'"
             )
-
-def load_strategy_config(config_path: str) -> dict:
-    """
-    Load strategy configuration from YAML file.
-    
-    Args:
-        config_path: Path to YAML config file
-    
-    Returns:
-        Dictionary containing configuration
-    """
-    import yaml
-    from pathlib import Path
-    
-    config_file = Path(config_path)
-    if not config_file.exists():
-        raise FileNotFoundError(f"Config file not found: {config_path}")
-    
-    try:
-        with open(config_file) as f:
-            config = yaml.safe_load(f)
-        
-        if config is None:
-            raise ValueError(f"Empty config file: {config_path}")
-        
-        return config
-    
-    except yaml.YAMLError as e:
-        raise ValueError(f"Invalid YAML in {config_path}: {e}")
-
 
 # Global settings instance - loaded when module is imported
 settings = Settings()

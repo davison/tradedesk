@@ -16,7 +16,6 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any
-from tradedesk.config import settings
 from tradedesk.subscriptions import MarketSubscription, ChartSubscription
 from tradedesk.chartdata import Candle, ChartHistory
 from tradedesk.indicators.base import Indicator

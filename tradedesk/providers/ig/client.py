@@ -6,8 +6,8 @@ from typing import Any
 import aiohttp
 from datetime import datetime, timezone
 from tradedesk.chartdata import Candle
-from tradedesk.config import settings
 from tradedesk.providers import Client
+from tradedesk.providers.ig.settings import settings
 
 log = logging.getLogger(__name__)
 
@@ -26,13 +26,13 @@ class IGClient(Client):
 
     def __init__(self):
         # Choose the correct base URL for the selected environment
-        self.base_url = self.DEMO_BASE if settings.environment == "DEMO" else self.LIVE_BASE
-        self.ls_url   = self.DEMO_LS   if settings.environment == "DEMO" else self.LIVE_LS
+        self.base_url = self.DEMO_BASE if settings.ig_environment == "DEMO" else self.LIVE_BASE
+        self.ls_url   = self.DEMO_LS   if settings.ig_environment == "DEMO" else self.LIVE_LS
 
         # VERSION 2 returns CST/X-SECURITY-TOKEN (works with Lightstreamer)
         # VERSION 3 returns OAuth tokens (doesn't work with Lightstreamer)
         # For demo with Lightstreamer support, use VERSION 2
-        self.api_version = "2" if settings.environment == "DEMO" else "3"
+        self.api_version = "2" if settings.ig_environment == "DEMO" else "3"
         
         # Store headers for session creation
         self.headers = {

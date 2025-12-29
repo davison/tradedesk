@@ -12,23 +12,6 @@ from tradedesk.subscriptions import ChartSubscription
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-@pytest.fixture(autouse=True)
-def mock_settings():
-    """Automatically mock settings for all tests."""
-    with patch('tradedesk.providers.ig.client.settings') as mock_client_settings, \
-         patch('tradedesk.strategy.settings') as mock_strategy_settings:
-        
-        # Configure all mocked settings
-        for mock_setting in [mock_client_settings, mock_strategy_settings]:
-            mock_setting.ig_api_key = "test-api-key"
-            mock_setting.ig_username = "test-username"
-            mock_setting.ig_password = "test-password"
-            mock_setting.environment = "DEMO"
-            mock_setting.log_level = "INFO"
-            mock_setting.validate = MagicMock()
-        
-        yield mock_client_settings
-
 @pytest.fixture
 def event_loop():
     """Create event loop for async tests."""
