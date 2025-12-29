@@ -4,9 +4,9 @@ from typing import Any
 import csv
 from pathlib import Path
 
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 from tradedesk.providers.base import Client
-from tradedesk.providers.events import MarketData
+from tradedesk.marketdata import MarketData
 from tradedesk.providers.backtest.streamer import BacktestStreamer, CandleSeries, MarketSeries
 
 

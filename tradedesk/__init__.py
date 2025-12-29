@@ -36,7 +36,7 @@ Example:
 from .strategy import BaseStrategy
 from .runner import run_strategies
 from .subscriptions import MarketSubscription, ChartSubscription
-from .chartdata import Candle, ChartHistory
+from .marketdata import Candle, ChartHistory
 
 __version__ = "0.1.0"
 __all__ = [

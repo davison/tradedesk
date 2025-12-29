@@ -2,7 +2,7 @@
 
 import abc
 
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 
 
 class Indicator(abc.ABC):

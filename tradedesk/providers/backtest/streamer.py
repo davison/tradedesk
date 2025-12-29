@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterable
 
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle, MarketData
 from tradedesk.providers.base import Streamer
-from tradedesk.providers.events import CandleClose, MarketData
+from tradedesk.marketdata import CandleClose
 
 log = logging.getLogger(__name__)
 

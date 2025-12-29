@@ -3,7 +3,7 @@ import math
 
 import pytest
 
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 from tradedesk.indicators import MACD, MFI, WilliamsR
 
 

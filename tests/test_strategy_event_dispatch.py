@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from tradedesk.chartdata import Candle
-from tradedesk.providers.events import MarketData, CandleClose
+from tradedesk.marketdata import Candle, MarketData
+from tradedesk.marketdata import CandleClose
 from tradedesk.strategy import BaseStrategy
 
 from unittest.mock import AsyncMock

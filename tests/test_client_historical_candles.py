@@ -1,7 +1,7 @@
 import pytest
 
 from tradedesk.providers.ig.client import IGClient
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 
 
 class TestClientHistoricalCandles:

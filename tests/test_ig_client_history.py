@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock
 
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 from tradedesk.providers.ig.client import IGClient
 
 

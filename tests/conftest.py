@@ -5,7 +5,7 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 from tradedesk.strategy import BaseStrategy
 from tradedesk.subscriptions import ChartSubscription
 

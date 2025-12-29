@@ -8,7 +8,7 @@ windows of historical data for indicator calculations.
 
 from collections import deque
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -163,3 +163,21 @@ class ChartHistory:
             f"ChartHistory(epic={self.epic}, period={self.period}, "
             f"candles={len(self)}/{self.max_length})"
         )
+
+
+@dataclass(frozen=True)
+class MarketData:
+    """Represents a tick-level market update."""
+    epic: str
+    bid: float
+    offer: float
+    timestamp: str
+    raw: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class CandleClose:
+    """Represents a completed OHLCV candle."""
+    epic: str
+    period: str
+    candle: Candle

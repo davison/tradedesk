@@ -3,7 +3,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from tradedesk import run_strategies
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 from tradedesk.providers.backtest.client import BacktestClient
 from tradedesk.strategy import BaseStrategy
 from tradedesk.subscriptions import ChartSubscription

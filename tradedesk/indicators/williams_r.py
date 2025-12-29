@@ -1,7 +1,7 @@
 """Williams %R indicator implementation."""
 
 from collections import deque
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 from .base import Indicator
 
 

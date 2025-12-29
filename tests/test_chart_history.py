@@ -1,6 +1,6 @@
 import numpy as np
 
-from tradedesk.chartdata import ChartHistory
+from tradedesk.marketdata import ChartHistory
 from tradedesk.subscriptions import ChartSubscription
 
 

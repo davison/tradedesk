@@ -5,7 +5,7 @@ import time
 from typing import Any
 import aiohttp
 from datetime import datetime, timezone
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 from tradedesk.providers import Client
 from tradedesk.providers.ig.settings import settings
 

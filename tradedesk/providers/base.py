@@ -8,7 +8,7 @@ we encapsulate streaming and implement backtesting.
 
 import abc
 from typing import Any, TYPE_CHECKING
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle
 if TYPE_CHECKING:
     from tradedesk.strategy import BaseStrategy
 

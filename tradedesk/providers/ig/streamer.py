@@ -3,10 +3,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from tradedesk.chartdata import Candle
+from tradedesk.marketdata import Candle, MarketData
 from tradedesk.subscriptions import MarketSubscription, ChartSubscription
 from tradedesk.providers import Streamer
-from tradedesk.providers.events import MarketData, CandleClose
+from tradedesk.marketdata import CandleClose
 
 log = logging.getLogger(__name__)
 
