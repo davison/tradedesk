@@ -20,9 +20,9 @@ class Strat(BaseStrategy):
             epic=epic, bid=bid, offer=offer, timestamp=timestamp, raw_data=raw_data
         )
 
-    async def on_candle_update(self, epic, period, candle):
+    async def on_candle_close(self, epic, period, candle):
         await self.on_candle_update_mock(epic=epic, period=period, candle=candle)
-        await super().on_candle_update(epic, period, candle)
+        await super().on_candle_close(epic, period, candle)
 
 @pytest.mark.asyncio
 async def test_handle_event_marketdata_updates_last_update_and_dispatches():

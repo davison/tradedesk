@@ -28,7 +28,7 @@ def test_backtest_replays_candles_and_executes_virtual_trades():
         async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
             pass
 
-        async def on_candle_update(self, epic, period, candle):
+        async def on_candle_close(self, epic, period, candle):
             # record receipt
             seen.append(candle.close)
 
@@ -39,7 +39,7 @@ def test_backtest_replays_candles_and_executes_virtual_trades():
                 await self.client.place_market_order(epic=epic, direction="SELL", size=1.0)
 
             # keep default chart storage behavior
-            await super().on_candle_update(epic, period, candle)
+            await super().on_candle_close(epic, period, candle)
 
     def factory():
         c = BacktestClient.from_history(history)

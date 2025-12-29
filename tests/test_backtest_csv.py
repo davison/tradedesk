@@ -23,12 +23,12 @@ def test_backtest_from_csv_replays_and_trades(tmp_path: Path):
         async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
             pass
 
-        async def on_candle_update(self, epic, period, candle):
+        async def on_candle_close(self, epic, period, candle):
             if candle.close == 10:
                 await self.client.place_market_order(epic=epic, direction="BUY", size=1.0)
             if candle.close == 12:
                 await self.client.place_market_order(epic=epic, direction="SELL", size=1.0)
-            await super().on_candle_update(epic, period, candle)
+            await super().on_candle_close(epic, period, candle)
 
     def factory():
         c = BacktestClient.from_csv(csv_path, epic="EPIC", period="5MINUTE")

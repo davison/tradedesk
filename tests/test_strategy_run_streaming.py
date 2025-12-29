@@ -98,12 +98,12 @@ class TestRunStreaming:
         async def on_price_update(epic, bid, offer, timestamp, raw_data):
             seen_market.append((epic, bid, offer, timestamp, raw_data))
 
-        async def on_candle_update(epic, period, candle):
-            await strategy_module.BaseStrategy.on_candle_update(strat, epic, period, candle)
+        async def on_candle_close(epic, period, candle):
+            await strategy_module.BaseStrategy.on_candle_close(strat, epic, period, candle)
             seen_candles.append((epic, period, candle))
 
         strat.on_price_update = on_price_update  # type: ignore
-        strat.on_candle_update = on_candle_update  # type: ignore
+        strat.on_candle_close = on_candle_close  # type: ignore
 
         task = asyncio.create_task(strat._run_streaming())
 

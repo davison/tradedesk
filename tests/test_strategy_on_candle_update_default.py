@@ -11,7 +11,7 @@ class TestOnCandleUpdateDefault:
         strat = Strat(client=None)
 
         candle = candle_factory(0)
-        await strat.on_candle_update("EPIC", "1MINUTE", candle)
+        await strat.on_candle_close("EPIC", "1MINUTE", candle)
 
         chart = strat.charts[("EPIC", "1MINUTE")]
         assert len(chart) == 1
@@ -22,4 +22,4 @@ class TestOnCandleUpdateDefault:
         strat = Strat(client=None)
 
         # Should not raise
-        await strat.on_candle_update("EPIC", "1MINUTE", candle_factory(0))
+        await strat.on_candle_close("EPIC", "1MINUTE", candle_factory(0))

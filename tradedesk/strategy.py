@@ -253,7 +253,7 @@ class BaseStrategy(abc.ABC):
         """
         pass
     
-    async def on_candle_update(
+    async def on_candle_close(
         self,
         epic: str,
         period: str,
@@ -368,7 +368,7 @@ class BaseStrategy(abc.ABC):
             return
 
         if isinstance(event, CandleClose):
-            await self.on_candle_update(
+            await self.on_candle_close(
                 epic=event.epic,
                 period=event.period,
                 candle=event.candle,
