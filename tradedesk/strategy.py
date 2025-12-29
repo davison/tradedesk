@@ -60,17 +60,18 @@ class BaseStrategy(abc.ABC):
     # Default polling interval when streamer is unavailable
     POLL_INTERVAL = 5  # seconds
     
-    def __init__(self, client: Client, config: dict = None):
+    def __init__(self, client: Client, subscriptions: list[MarketSubscription | ChartSubscription] | None = None):
         """
         Initialize the strategy.
-        
+
         Args:
-            client: Authenticated IG client
-            config: Optional configuration dictionary (e.g., from YAML)
+            client: Authenticated provider client
+            subscriptions: Optional explicit subscriptions for this instance.
+                If omitted, defaults to the class-level SUBSCRIPTIONS.
+            chart_history_length: Number of candles to retain per chart subscription.
         """
         self.client = client
-        self.config = config or {}
-        self.subscriptions = list(self.SUBSCRIPTIONS)
+        self.subscriptions = list(subscriptions) if subscriptions is not None else list(self.SUBSCRIPTIONS)
 
         # Create chart history managers for each chart subscription
         self.charts: dict[tuple[str, str], ChartHistory] = {}
@@ -80,8 +81,7 @@ class BaseStrategy(abc.ABC):
         for sub in self.subscriptions:
             if isinstance(sub, ChartSubscription):
                 key = (sub.epic, sub.period)
-                max_len = self.config.get('chart', {}).get('history_length', 200)
-                self.charts[key] = ChartHistory(sub.epic, sub.period, max_len)
+                self.charts[key] = ChartHistory(sub.epic, sub.period, 200) # max_chart_history
         
         # Initialize the watchdog timestamp
         self.last_update = datetime.now(timezone.utc)
@@ -89,8 +89,7 @@ class BaseStrategy(abc.ABC):
         
         if not self.subscriptions:
             log.warning(
-                "%s has no subscriptions defined. Set SUBSCRIPTIONS "
-                "to specify which instruments to monitor.",
+                "%s has no subscriptions defined. Set SUBSCRIPTIONS or set subscriptions in __init__.",
                 self.__class__.__name__
             )
     
@@ -107,6 +106,9 @@ class BaseStrategy(abc.ABC):
         key = self._chart_key(sub)
         self._chart_indicators.setdefault(key, []).append(indicator)
 
+    def warmup_enabled(self) -> bool:
+        return True
+    
     async def warmup(self) -> None:
         """
         Provider-neutral warmup entrypoint.
@@ -123,8 +125,7 @@ class BaseStrategy(abc.ABC):
         Providers should implement `get_historical_candles(epic, period, num_points)`.
         If the client does not support history, warmup is skipped.
         """
-        enabled = self.config.get("warmup", {}).get("enabled", True)
-        if not enabled:
+        if not self.warmup_enabled():
             return
         
         plan = self.chart_warmup_plan()
