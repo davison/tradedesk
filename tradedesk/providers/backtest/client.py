@@ -276,6 +276,9 @@ class BacktestClient(Client):
         if epic not in self._mark_price:
             raise RuntimeError(f"No mark price available for {epic} (no data replayed yet)")
         return self._mark_price[epic]
+    
+    def get_mark_price(self, epic: str) -> float | None:
+        return self._mark_price.get(epic)
 
     async def get_market_snapshot(self, epic: str) -> dict[str, Any]:
         price = self._get_mark_price(epic)
