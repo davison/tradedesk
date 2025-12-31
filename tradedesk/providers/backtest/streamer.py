@@ -7,15 +7,29 @@ from tradedesk.marketdata import Candle, MarketData
 from tradedesk.providers.base import Streamer
 from tradedesk.marketdata import CandleClose
 
+
 log = logging.getLogger(__name__)
 
-
 def _parse_ts(ts: str) -> datetime:
-    # Candle timestamps should be ISO-8601; allow a trailing 'Z'
-    if ts.endswith("Z"):
-        ts = ts[:-1] + "+00:00"
-    return datetime.fromisoformat(ts)
+    # Normalise common variants to something datetime.fromisoformat understands.
+    # Accepts:
+    # - 2025-12-04T19:20:00Z
+    # - 2025/12/04T19:20:00Z
+    # - 2025-12-04 19:20:00Z
+    s = ts.strip()
 
+    # Convert YYYY/MM/DD -> YYYY-MM-DD (only the date part)
+    if len(s) >= 10 and s[4] == "/" and s[7] == "/":
+        s = f"{s[0:4]}-{s[5:7]}-{s[8:]}"
+
+    # Convert trailing Z to offset for fromisoformat
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+
+    # Allow space separator too
+    s = s.replace(" ", "T", 1)
+
+    return datetime.fromisoformat(s)
 
 @dataclass(frozen=True)
 class CandleSeries:

@@ -6,6 +6,20 @@ from tradedesk.marketdata import CandleClose, MarketData
 from tradedesk.providers.backtest.client import BacktestClient
 from tradedesk.strategy import BaseStrategy
 from tradedesk.subscriptions import ChartSubscription, MarketSubscription
+from tradedesk.providers.backtest.streamer import _parse_ts
+
+
+def test_parse_ts_accepts_slashes_and_z():
+    dt = _parse_ts("2025/12/04T19:20:00Z")
+    assert dt.isoformat() == "2025-12-04T19:20:00+00:00"
+
+def test_parse_ts_accepts_iso_z():
+    dt = _parse_ts("2025-12-04T19:20:00Z")
+    assert dt.isoformat() == "2025-12-04T19:20:00+00:00"
+
+def test_parse_ts_accepts_space_and_z():
+    dt = _parse_ts("2025-12-04 19:20:00Z")
+    assert dt.isoformat() == "2025-12-04T19:20:00+00:00"
 
 def test_backtest_from_csv_replays_and_trades(tmp_path: Path):
     csv_path = tmp_path / "candles.csv"
