@@ -87,11 +87,23 @@ class BacktestStreamer(Streamer):
         try:
             for _, event in stream:
                 if isinstance(event, MarketData):
+                    event_ts = event.timestamp
                     # Mark-to-market uses mid price by default
                     self._client._set_mark_price(event.epic, (event.bid + event.offer) / 2)
                 elif isinstance(event, CandleClose):
+                    event_ts = event.candle.timestamp
                     self._client._set_mark_price(event.epic, event.candle.close)
 
+                # Normalise to a stable ISO string with Z
+                s = event_ts.strip()
+                if s.endswith("Z"):
+                    ts_iso = s
+                else:
+                    # if already has +00:00 etc, keep it
+                    ts_iso = s.replace("+00:00", "Z")
+
+                self._client._set_current_timestamp(ts_iso)
+                
                 await strategy._handle_event(event)
         finally:
             await self.disconnect()
