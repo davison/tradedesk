@@ -245,27 +245,37 @@ class Lightstreamer(Streamer):
         async def market_consumer():
             while True:
                 payload = await market_queue.get()
-                event = MarketData(
-                    epic=payload["epic"],
-                    bid=payload["bid"],
-                    offer=payload["offer"],
-                    timestamp=payload["timestamp"],
-                    raw=payload["raw"],
-                )
-                await strategy._handle_event(event)
-
+                try:
+                    event = MarketData(
+                        epic=payload["epic"],
+                        bid=payload["bid"],
+                        offer=payload["offer"],
+                        timestamp=payload["timestamp"],
+                        raw=payload["raw"],
+                    )
+                    await strategy._handle_event(event)
+                except Exception:
+                    log.exception("Unhandled exception in market_consumer for %s", payload.get("epic"))
+                    
         async def chart_consumer():
             while True:
                 payload = await chart_queue.get()
-
-                candle_data = payload["candle"]
-                candle = Candle(**candle_data)
-                event = CandleClose(
-                    epic=payload["epic"],
-                    period=payload["period"],
-                    candle=candle,
-                )
-                await strategy._handle_event(event)
+                try:
+                    candle_data = payload["candle"]
+                    candle = Candle(**candle_data)
+                    event = CandleClose(
+                        epic=payload["epic"],
+                        period=payload["period"],
+                        candle=candle,
+                    )
+                    await strategy._handle_event(event)
+                except Exception:
+                    log.exception(
+                        "Unhandled exception in chart_consumer for epic=%s period=%s payload=%r",
+                        payload.get("epic"),
+                        payload.get("period"),
+                        payload,
+                    )
 
         tasks = [asyncio.create_task(_heartbeat_monitor())]
 
