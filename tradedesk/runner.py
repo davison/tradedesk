@@ -120,6 +120,7 @@ def _instantiate_strategies(client: Client, strategy_specs: list) -> list[BaseSt
     for spec in strategy_specs:
         if isinstance(spec, tuple):
             strategy_class, kwargs = spec
+            log.debug("Strategy %s kwargs=%s", strategy_class.__name__, kwargs)
             instance = strategy_class(client, **kwargs)
         else:
             strategy_class = spec
