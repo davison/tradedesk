@@ -4,7 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tradedesk"
-version = "0.1.0"
+dynamic = ["version"]
+
 authors = [
   { name = "Radius Red Ltd.", email = "opensource@radiusred.uk" }
 ]
@@ -67,3 +68,6 @@ exclude_lines = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["tradedesk"]
+
+[tool.hatch.version]
+path = "tradedesk/__init__.py"
