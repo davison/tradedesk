@@ -412,3 +412,15 @@ class BacktestClient(Client):
             "price": price,
             "currency": currency,
         }
+
+    async def place_market_order_confirmed(
+        self,
+        epic: str,
+        direction: str,
+        size: float,
+        currency: str = "USD",
+        force_open: bool = True,
+    ) -> dict[str, Any]:
+        return await self.place_market_order(
+            epic, direction, size, currency=currency, force_open=force_open
+        )
