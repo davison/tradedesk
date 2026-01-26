@@ -65,6 +65,25 @@ class Client(abc.ABC):
         currency: str = "USD",
         force_open: bool = True,
     ) -> dict[str, Any]:
+        """Place a market order without requiring confirmation.
+
+        This method should not block, the client is responsible for tracking order status.
+        """
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    async def place_market_order_confirmed(
+        self,
+        epic: str,
+        direction: str,
+        size: float,
+        currency: str = "USD",
+        force_open: bool = True,
+    ) -> dict[str, Any]:
+        """Place a market order and confirm its execution.
+        
+        This method should block until the order is fully executed.
+        """
         raise NotImplementedError
 
     def get_streamer(self) -> Streamer:
