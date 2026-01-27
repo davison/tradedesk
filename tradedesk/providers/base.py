@@ -13,6 +13,9 @@ from tradedesk.marketdata import Candle
 if TYPE_CHECKING:
     from tradedesk.strategy import BaseStrategy
 
+class DealNotAcceptedException(Exception):
+    """Raised when a deal is not accepted after placing a market order."""
+    pass
 
 class Streamer(abc.ABC):
     """Abstract base for a real-time (or replay) market data stream."""

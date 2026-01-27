@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from tradedesk.providers.base import DealNotAcceptedException
 from tradedesk.providers.ig.client import IGClient
 
 
@@ -849,6 +850,39 @@ class TestIGClient:
             client._session = mock_aiohttp_session
 
             with pytest.raises(RuntimeError, match="Expected dealReference"):
+                await client.place_market_order_confirmed(
+                    epic="CS.D.EURUSD.TODAY.IP",
+                    direction="BUY",
+                    size=1.0
+                )
+
+    @pytest.mark.asyncio
+    async def test_place_market_order_confirmed_raises_rejected_status(self, mock_aiohttp_session):
+        """Test place_market_order_confirmed raises exception when rejected."""
+        # Setup order placement response without dealReference
+        order_response = MagicMock()
+        order_response.status = 200
+        order_response.json = AsyncMock(return_value={"dealReference": "REF123"})
+        order_response.__aenter__ = AsyncMock(return_value=order_response)
+        order_response.__aexit__ = AsyncMock(return_value=None)
+
+        # Setup confirmation response
+        confirm_response = MagicMock()
+        confirm_response.status = 200
+        confirm_response.json = AsyncMock(return_value={
+            "dealStatus": "REJECTED",
+            "dealId": "DEAL123"
+        })
+        confirm_response.__aenter__ = AsyncMock(return_value=confirm_response)
+        confirm_response.__aexit__ = AsyncMock(return_value=None)
+
+        mock_aiohttp_session.request.side_effect = [order_response, confirm_response]
+
+        with patch("aiohttp.ClientSession", return_value=mock_aiohttp_session):
+            client = IGClient()
+            client._session = mock_aiohttp_session
+
+            with pytest.raises(DealNotAcceptedException, match="Deal not accepted"):
                 await client.place_market_order_confirmed(
                     epic="CS.D.EURUSD.TODAY.IP",
                     direction="BUY",

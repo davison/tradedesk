@@ -7,6 +7,7 @@ import aiohttp
 from decimal import Decimal, ROUND_DOWN
 from tradedesk.marketdata import Candle
 from tradedesk.providers import Client
+from tradedesk.providers.base import DealNotAcceptedException
 from tradedesk.providers.ig.settings import settings
 
 log = logging.getLogger(__name__)
@@ -623,9 +624,13 @@ class IGClient(Client):
                 f"Expected dealReference from place_market_order, got: {res}"
             )
 
-        return await self.confirm_deal(
+        deal = await self.confirm_deal(
             deal_ref, timeout_s=confirm_timeout_s, poll_s=confirm_poll_s
         )
+        if deal.get("dealStatus", "").upper() != "ACCEPTED":
+            raise DealNotAcceptedException(f"Deal not accepted: {deal}")
+        
+        return deal
 
     async def get_historical_candles(
         self, epic: str, period: str, num_points: int
