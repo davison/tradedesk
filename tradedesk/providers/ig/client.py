@@ -539,6 +539,7 @@ class IGClient(Client):
         # Dealing endpoints are generally VERSION 1 (more consistent across IG)
         path = await self._dealing_path_for_current_account()
         log.info("Placing market order: %s, %s, %s", epic, size, direction)
+        log.debug("Order payload: %s", order)
         return await self._request("POST", path, json=order, api_version="1")
 
     async def confirm_deal(
@@ -577,7 +578,7 @@ class IGClient(Client):
                 )
                 if retryable:
                     last_err = e
-                    log.warning(
+                    log.debug(
                         "Transient error confirming deal %s: %s", deal_reference, msg
                     )
                 else:
