@@ -80,6 +80,7 @@ Backward compatibility is **not required** unless explicitly stated.
 * Prefer clarity and correctness over abstraction
 * Avoid premature generalisation
 * Code should meet `ruff check` and `mypy --strict` requirements
+* Create commit messages for git following "Conventional Commits" and the current style of the project's git log
 
 When proposing code:
 
