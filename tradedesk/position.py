@@ -15,14 +15,14 @@ class PositionTracker:
     - Maximum favorable excursion (MFE)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.direction: Direction | None = None
         self.size: float | None = None
         self.entry_price: float | None = None
         self.bars_held: int = 0
         self.mfe_points: float = 0.0
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset all position state to flat."""
         self.direction = None
         self.size = None
@@ -34,7 +34,7 @@ class PositionTracker:
         """Check if no position is held."""
         return self.direction is None
 
-    def open(self, direction: Direction, size: float, entry_price: float):
+    def open(self, direction: Direction, size: float, entry_price: float) -> None:
         """
         Open a new position.
 
@@ -49,7 +49,7 @@ class PositionTracker:
         self.bars_held = 0
         self.mfe_points = 0.0
 
-    def update_mfe(self, candle: Candle):
+    def update_mfe(self, candle: Candle) -> None:
         """
         Update maximum favorable excursion using candle extremes.
 

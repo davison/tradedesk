@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterable
+from typing import Any, Iterable
 
 from tradedesk.types import Direction
 
@@ -67,7 +67,7 @@ def max_drawdown(equity: list[float]) -> float:
 
 def equity_rows_from_round_trips(
     trips: Iterable[RoundTrip], *, starting_equity: float = 0.0
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Build a minimal equity curve from round trips by cumulatively summing PnL.
 
     This is primarily intended for per-instrument reporting where the ledger contains
@@ -77,14 +77,14 @@ def equity_rows_from_round_trips(
       - {'timestamp': <exit_ts>, 'equity': <float as str>}
     """
     eq = float(starting_equity)
-    out: list[dict] = []
+    out: list[dict[str, Any]] = []
     for t in trips:
         eq += float(t.pnl)
         out.append({"timestamp": str(t.exit_ts), "equity": str(eq)})
     return out
 
 
-def round_trips_from_fills(rows: list[dict]) -> list[RoundTrip]:
+def round_trips_from_fills(rows: list[dict[str, Any]]) -> list[RoundTrip]:
     """
     Reconstruct round trips per instrument under the assumption:
       - one open position per instrument
@@ -98,7 +98,7 @@ def round_trips_from_fills(rows: list[dict]) -> list[RoundTrip]:
       - 'size': position size
       - 'reason' (optional): exit reason
     """
-    open_pos: dict[str, dict] = {}
+    open_pos: dict[str, dict[str, Any]] = {}
     trips: list[RoundTrip] = []
 
     for r in rows:
@@ -151,7 +151,7 @@ def round_trips_from_fills(rows: list[dict]) -> list[RoundTrip]:
     return trips
 
 
-def compute_metrics(*, equity_rows: list[dict], trade_rows: list[dict], reporting_scale: float = 1.0) -> Metrics:
+def compute_metrics(*, equity_rows: list[dict[str, Any]], trade_rows: list[dict[str, Any]], reporting_scale: float = 1.0) -> Metrics:
     """
     Compute comprehensive performance metrics.
 
