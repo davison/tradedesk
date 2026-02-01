@@ -312,3 +312,12 @@ print(results["summary"])
 - [Backtesting Guide](backtesting_guide.md) - Using metrics in backtests
 - [Risk Management](risk_management.md) - Position sizing and tracking
 - [Portfolio Guide](portfolio_guide.md) - Multi-instrument performance analysis
+
+---
+
+## License
+
+Licensed under the Apache License, Version 2.0.
+See: https://www.apache.org/licenses/LICENSE-2.0
+
+Copyright 2026 [Radius Red Ltd.](https://github.com/radiusred)

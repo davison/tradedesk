@@ -197,3 +197,12 @@ await runner.on_candle_close(
 - [Strategy Guide](strategy_guide.md) - Building trading strategies
 - [Risk Management](risk_management.md) - Position sizing utilities
 - [Backtesting Guide](backtesting_guide.md) - Testing portfolio strategies
+
+---
+
+## License
+
+Licensed under the Apache License, Version 2.0.
+See: https://www.apache.org/licenses/LICENSE-2.0
+
+Copyright 2026 [Radius Red Ltd.](https://github.com/radiusred)
