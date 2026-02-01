@@ -145,7 +145,7 @@ def DummyStrategy():
         class _DummyStrategy(BaseStrategy):
             SUBSCRIPTIONS = subscriptions
 
-            async def on_price_update(self, epic, bid, offer, timestamp, raw_data) -> None:
+            async def on_price_update(self, market_data) -> None:
                 return
 
         return _DummyStrategy

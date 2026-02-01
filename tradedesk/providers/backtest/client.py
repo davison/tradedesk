@@ -16,7 +16,7 @@ from tradedesk.providers.backtest.streamer import (
 
 @dataclass
 class Trade:
-    epic: str
+    instrument: str
     direction: str  # "BUY" or "SELL"
     size: float
     price: float
@@ -25,7 +25,7 @@ class Trade:
 
 @dataclass
 class Position:
-    epic: str
+    instrument: str
     direction: str  # "LONG" or "SHORT"
     size: float
     entry_price: float
@@ -52,7 +52,7 @@ class BacktestClient(Client):
         self._market_series = market_series or []
 
         self._history: dict[tuple[str, str], list[Candle]] = {
-            (s.epic, s.period): list(s.candles) for s in candle_series
+            (s.instrument, s.period): list(s.candles) for s in candle_series
         }
 
         self._started = False
@@ -69,8 +69,8 @@ class BacktestClient(Client):
         cls, history: dict[tuple[str, str], list[Candle]]
     ) -> "BacktestClient":
         series: list[CandleSeries] = []
-        for (epic, period), candles in history.items():
-            series.append(CandleSeries(epic=epic, period=period, candles=list(candles)))
+        for (instrument, period), candles in history.items():
+            series.append(CandleSeries(instrument=instrument, period=period, candles=list(candles)))
         return cls(series, [])
 
     @classmethod
@@ -78,10 +78,10 @@ class BacktestClient(Client):
         cls,
         path: str | Path,
         *,
-        epic: str,
+        instrument: str,
         delimiter: str = ",",
     ) -> "BacktestClient":
-        return cls.from_market_csvs({epic: path}, delimiter=delimiter)
+        return cls.from_market_csvs({instrument: path}, delimiter=delimiter)
 
     @classmethod
     def from_market_csvs(
@@ -106,7 +106,7 @@ class BacktestClient(Client):
 
         market_series: list[MarketSeries] = []
 
-        for epic, path in files.items():
+        for instrument, path in files.items():
             path = Path(path)
 
             ticks: list[MarketData] = []
@@ -156,7 +156,7 @@ class BacktestClient(Client):
 
                     ticks.append(
                         MarketData(
-                            epic=epic,
+                            instrument=instrument,
                             bid=bid,
                             offer=offer,
                             timestamp=ts_norm,
@@ -164,7 +164,7 @@ class BacktestClient(Client):
                         )
                     )
 
-            market_series.append(MarketSeries(epic=epic, ticks=ticks))
+            market_series.append(MarketSeries(instrument=instrument, ticks=ticks))
 
         # No candle history for tick-only backtest (for now)
         return cls(candle_series=[], market_series=market_series)
@@ -174,7 +174,7 @@ class BacktestClient(Client):
         cls,
         path: str | Path,
         *,
-        epic: str,
+        instrument: str,
         period: str,
         timestamp_col: str | None = None,
         open_col: str | None = None,
@@ -289,7 +289,7 @@ class BacktestClient(Client):
                 )
                 candles.append(candle)
 
-        history = {(epic, period): candles}
+        history = {(instrument, period): candles}
         return cls.from_history(history)
 
     async def start(self) -> None:
@@ -304,35 +304,35 @@ class BacktestClient(Client):
     def _set_current_timestamp(self, ts: str) -> None:
         self._current_timestamp = ts
 
-    def _set_mark_price(self, epic: str, price: float) -> None:
-        self._mark_price[epic] = float(price)
+    def _set_mark_price(self, instrument: str, price: float) -> None:
+        self._mark_price[instrument] = float(price)
 
-    def _get_mark_price(self, epic: str) -> float:
-        if epic not in self._mark_price:
+    def _get_mark_price(self, instrument: str) -> float:
+        if instrument not in self._mark_price:
             raise RuntimeError(
-                f"No mark price available for {epic} (no data replayed yet)"
+                f"No mark price available for {instrument} (no data replayed yet)"
             )
-        return self._mark_price[epic]
+        return self._mark_price[instrument]
 
-    def get_mark_price(self, epic: str) -> float | None:
-        return self._mark_price.get(epic)
+    def get_mark_price(self, instrument: str) -> float | None:
+        return self._mark_price.get(instrument)
 
-    async def get_market_snapshot(self, epic: str) -> dict[str, Any]:
-        price = self._get_mark_price(epic)
+    async def get_market_snapshot(self, instrument: str) -> dict[str, Any]:
+        price = self._get_mark_price(instrument)
         # Backtest uses mid-price; bid/offer equal for now.
         return {"snapshot": {"bid": price, "offer": price}}
 
     async def get_historical_candles(
-        self, epic: str, period: str, num_points: int
+        self, instrument: str, period: str, num_points: int
     ) -> list[Candle]:
         if num_points <= 0:
             return []
-        candles = self._history.get((epic, period), [])
+        candles = self._history.get((instrument, period), [])
         return candles[-num_points:]
 
     async def place_market_order(
         self,
-        epic: str,
+        instrument: str,
         direction: str,
         size: float,
         currency: str = "USD",
@@ -348,10 +348,10 @@ class BacktestClient(Client):
         if direction not in {"BUY", "SELL"}:
             raise ValueError("direction must be BUY or SELL")
 
-        price = self._get_mark_price(epic)
+        price = self._get_mark_price(instrument)
         self.trades.append(
             Trade(
-                epic=epic,
+                instrument=instrument,
                 direction=direction,
                 size=float(size),
                 price=price,
@@ -362,11 +362,11 @@ class BacktestClient(Client):
         # Very simple netting model:
         # - BUY opens/increases LONG, SELL opens/increases SHORT
         # - If opposite direction order arrives, close the entire position if sizes match.
-        pos = self.positions.get(epic)
+        pos = self.positions.get(instrument)
 
         if pos is None:
-            self.positions[epic] = Position(
-                epic=epic,
+            self.positions[instrument] = Position(
+                instrument=instrument,
                 direction="LONG" if direction == "BUY" else "SHORT",
                 size=float(size),
                 entry_price=price,
@@ -392,12 +392,12 @@ class BacktestClient(Client):
 
                 pos.size -= close_size
                 if pos.size <= 0:
-                    self.positions.pop(epic, None)
+                    self.positions.pop(instrument, None)
                 # If order size > position size, open residual opposite position
                 residual = float(size) - close_size
                 if residual > 0:
-                    self.positions[epic] = Position(
-                        epic=epic,
+                    self.positions[instrument] = Position(
+                        instrument=instrument,
                         direction="LONG" if direction == "BUY" else "SHORT",
                         size=residual,
                         entry_price=price,
@@ -406,7 +406,7 @@ class BacktestClient(Client):
         return {
             "dealReference": f"BACKTEST-{next(self._deal_counter)}",
             "status": "FILLED",
-            "epic": epic,
+            "instrument": instrument,
             "direction": direction,
             "size": float(size),
             "price": price,
@@ -415,12 +415,12 @@ class BacktestClient(Client):
 
     async def place_market_order_confirmed(
         self,
-        epic: str,
+        instrument: str,
         direction: str,
         size: float,
         currency: str = "USD",
         force_open: bool = True,
     ) -> dict[str, Any]:
         return await self.place_market_order(
-            epic, direction, size, currency=currency, force_open=force_open
+            instrument, direction, size, currency=currency, force_open=force_open
         )

@@ -43,13 +43,13 @@ class BaseStrategy(abc.ABC):
                 ChartSubscription("CS.D.GBPUSD.TODAY.IP", "5MINUTE"),
             ]
 
-            async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+            async def on_price_update(self, market_data):
                 # Handle tick-level updates
                 pass
 
-            async def on_candle_update(self, epic, period, candle):
+            async def on_candle_close(self, candle_close):
                 # Handle completed candles
-                wr = self.wr.update(candle)
+                wr = self.wr.update(candle_close.candle)
                 if wr and wr < -80:
                     log.info("Oversold!")
     """
@@ -88,9 +88,9 @@ class BaseStrategy(abc.ABC):
 
         for sub in self.subscriptions:
             if isinstance(sub, ChartSubscription):
-                key = (sub.epic, sub.period)
+                key = (sub.instrument, sub.period)
                 self.charts[key] = ChartHistory(
-                    sub.epic, sub.period, 200
+                    sub.instrument, sub.period, 200
                 )  # max_chart_history
 
         # Initialize the watchdog timestamp
@@ -104,7 +104,7 @@ class BaseStrategy(abc.ABC):
             )
 
     def _chart_key(self, sub: ChartSubscription) -> tuple[str, str]:
-        return (sub.epic, sub.period)
+        return (sub.instrument, sub.period)
 
     def register_indicator(self, sub: ChartSubscription, indicator: Indicator) -> None:
         """
@@ -132,7 +132,7 @@ class BaseStrategy(abc.ABC):
         Fetch historical candles (if supported by the provider client) to warm up
         chart history and indicators.
 
-        Providers should implement `get_historical_candles(epic, period, num_points)`.
+        Providers should implement `get_historical_candles(instrument, period, num_points)`.
         If the client does not support history, warmup is skipped.
         """
         if not self.warmup_enabled():
@@ -152,22 +152,22 @@ class BaseStrategy(abc.ABC):
 
         history: dict[tuple[str, str], list[Candle]] = {}
 
-        for (epic, period), warmup in plan.items():
+        for (instrument, period), warmup in plan.items():
             if warmup <= 0:
                 continue
             try:
-                candles = await get_hist(epic, period, warmup)
+                candles = await get_hist(instrument, period, warmup)
                 log.debug(
                     "Warmup fetched %d candles for %s %s",
                     len(candles or []),
-                    epic,
+                    instrument,
                     period,
                 )
-                history[(epic, period)] = candles or []
+                history[(instrument, period)] = candles or []
             except Exception:
                 log.exception(
                     "Warmup fetch failed for %s %s; continuing without warmup",
-                    epic,
+                    instrument,
                     period,
                 )
 
@@ -178,7 +178,7 @@ class BaseStrategy(abc.ABC):
         Warm up chart histories and registered indicators from supplied historical candles.
 
         Args:
-            history: Dict keyed by (epic, period) with candles ordered oldest -> newest.
+            history: Dict keyed by (instrument, period) with candles ordered oldest -> newest.
 
         Notes:
             - Only chart subscriptions in chart_warmup_plan() are considered.
@@ -186,20 +186,20 @@ class BaseStrategy(abc.ABC):
             - Extra history entries not present in subscriptions are ignored.
             - This does NOT call on_candle_update().
         """
-        for epic_period, _warmup in self.chart_warmup_plan().items():
-            candles = history.get(epic_period)
+        for instrument_period, _warmup in self.chart_warmup_plan().items():
+            candles = history.get(instrument_period)
             if not candles:
                 continue
 
-            epic, period = epic_period
-            self.prime_chart(ChartSubscription(epic, period), candles)
+            instrument, period = instrument_period
+            self.prime_chart(ChartSubscription(instrument, period), candles)
 
     def chart_warmup_plan(self) -> dict[tuple[str, str], int]:
         """
         Build a warmup plan for chart subscriptions.
 
         Returns:
-            A dict keyed by (epic, period) with the number of completed candles
+            A dict keyed by (instrument, period) with the number of completed candles
             required to warm up all registered indicators for that chart.
         """
         plan: dict[tuple[str, str], int] = {}
@@ -208,7 +208,7 @@ class BaseStrategy(abc.ABC):
             if not isinstance(sub, ChartSubscription):
                 continue
 
-            key = (sub.epic, sub.period)
+            key = (sub.instrument, sub.period)
             plan[key] = self.required_warmup(sub)
 
         return plan
@@ -230,7 +230,7 @@ class BaseStrategy(abc.ABC):
         - Candles are assumed to be ordered oldest -> newest.
         - This does NOT call on_candle_update(), so strategy trading logic is not triggered.
         """
-        key = (sub.epic, sub.period)
+        key = (sub.instrument, sub.period)
 
         chart = self.charts.get(key)
         indicators = self._chart_indicators.get(key, [])
@@ -262,7 +262,7 @@ class BaseStrategy(abc.ABC):
         Override to implement your candle-based trading logic.
         """
         # Store in chart history by default
-        key = (candle_close.epic, candle_close.period)
+        key = (candle_close.instrument, candle_close.period)
         if key in self.charts:
             self.charts[key].add_candle(candle_close.candle)
 
@@ -277,9 +277,9 @@ class BaseStrategy(abc.ABC):
         sub_display = []
         for sub in self.subscriptions:
             if isinstance(sub, MarketSubscription):
-                sub_display.append(f"MARKET:{sub.epic}")
+                sub_display.append(f"MARKET:{sub.instrument}")
             elif isinstance(sub, ChartSubscription):
-                sub_display.append(f"CHART:{sub.epic}:{sub.period}")
+                sub_display.append(f"CHART:{sub.instrument}:{sub.period}")
 
         log.info("%s started for %s", self.__class__.__name__, ", ".join(sub_display))
 
@@ -303,36 +303,36 @@ class BaseStrategy(abc.ABC):
         Note: Only polls MARKET subscriptions, not CHART subscriptions.
         """
         # Only poll market subscriptions
-        market_epics = [
-            sub.epic
+        market_instruments = [
+            sub.instrument
             for sub in self.subscriptions
             if isinstance(sub, MarketSubscription)
         ]
 
-        if not market_epics:
+        if not market_instruments:
             log.warning("No market subscriptions to poll")
             await asyncio.Future()  # Wait forever
             return
 
-        last_prices: dict[str, float | None] = {epic: None for epic in market_epics}
+        last_prices: dict[str, float | None] = {instrument: None for instrument in market_instruments}
 
         while True:
-            for epic in market_epics:
+            for instrument in market_instruments:
                 try:
-                    snapshot = await self.client.get_market_snapshot(epic)
+                    snapshot = await self.client.get_market_snapshot(instrument)
                     bid = float(snapshot["snapshot"]["bid"])
                     offer = float(snapshot["snapshot"]["offer"])
                     mid = (bid + offer) / 2
 
                     # Only notify on price changes
-                    if last_prices[epic] != mid:
-                        last_prices[epic] = mid
+                    if last_prices[instrument] != mid:
+                        last_prices[instrument] = mid
                         timestamp = (
                             datetime.now(timezone.utc).isoformat(timespec="seconds")
                             + "Z"
                         )
                         market_data = MarketData(
-                            epic=epic,
+                            instrument=instrument,
                             bid=bid,
                             offer=offer,
                             timestamp=timestamp,
@@ -341,7 +341,7 @@ class BaseStrategy(abc.ABC):
                         await self.on_price_update(market_data)
 
                 except Exception:
-                    log.exception("Failed to fetch market snapshot for %s", epic)
+                    log.exception("Failed to fetch market snapshot for %s", instrument)
 
             await asyncio.sleep(self.POLL_INTERVAL)
 

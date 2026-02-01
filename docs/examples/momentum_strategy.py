@@ -41,45 +41,45 @@ class MomentumStrategy(BaseStrategy):
         """
         super().__init__(client, config)
         self.lookback = lookback
-        
-        # Track price history per EPIC
-        epics = [sub.epic for sub in self.SUBSCRIPTIONS]
+
+        # Track price history per instrument
+        instruments = [sub.instrument for sub in self.SUBSCRIPTIONS]
         self.price_history: dict[str, deque] = {
-            epic: deque(maxlen=lookback) for epic in epics
+            instrument: deque(maxlen=lookback) for instrument in instruments
         }
     
     async def on_price_update(self, market_data: MarketData) -> None:
         """Process price update and check for signals."""
 
         mid = (market_data.bid + market_data.offer) / 2
-        epic = market_data.epic
-        
+        instrument = market_data.instrument
+
         # Store price
-        if epic in self.price_history:
-            self.price_history[epic].append(mid)
+        if instrument in self.price_history:
+            self.price_history[instrument].append(mid)
         else:
-            # Epic not in our list, ignore
+            # Instrument not in our list, ignore
             return
-        
+
         # Need full history for momentum calculation
-        if len(self.price_history[epic]) < self.lookback:
+        if len(self.price_history[instrument]) < self.lookback:
             return
-        
+
         # Calculate simple momentum
-        prices = list(self.price_history[epic])
+        prices = list(self.price_history[instrument])
         momentum = (prices[-1] - prices[0]) / prices[0]
         log.debug(
             "Momentum for %s: %.5f (from %.5f to %.5f)",
-            epic, momentum, prices[0], prices[-1]
+            instrument, momentum, prices[0], prices[-1]
         )
 
         # Generate signals (in production, would place actual orders)
         if momentum > 0.001:  # 10 pips up
-            log.info("🟢 %s momentum UP: %.5f", epic, momentum)
-            # await self.client.place_market_order(epic, "BUY", size=1.0)
+            log.info("🟢 %s momentum UP: %.5f", instrument, momentum)
+            # await self.client.place_market_order(instrument, "BUY", size=1.0)
         elif momentum < -0.001:  # 10 pips down
-            log.info("🔴 %s momentum DOWN: %.5f", epic, momentum)
-            # await self.client.place_market_order(epic, "SELL", size=1.0)
+            log.info("🔴 %s momentum DOWN: %.5f", instrument, momentum)
+            # await self.client.place_market_order(instrument, "SELL", size=1.0)
 
 if __name__ == "__main__":
     # choose which client to run the strategy via..

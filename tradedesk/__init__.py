@@ -18,8 +18,9 @@ Example:
     class MyStrategy(BaseStrategy):
         SUBSCRIPTIONS = [MarketSubscription("CS.D.GBPUSD.TODAY.IP")]
 
-        async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+        async def on_price_update(self, market_data):
             # Your trading logic here
+            # Access: market_data.instrument, market_data.bid, market_data.offer
             pass
 
     # main.py

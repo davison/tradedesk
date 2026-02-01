@@ -35,14 +35,14 @@ def _parse_ts(ts: str) -> datetime:
 
 @dataclass(frozen=True)
 class CandleSeries:
-    epic: str
+    instrument: str
     period: str
     candles: list[Candle]
 
 
 @dataclass(frozen=True)
 class MarketSeries:
-    epic: str
+    instrument: str
     ticks: list[MarketData]
 
 
@@ -84,7 +84,7 @@ class BacktestStreamer(Streamer):
                 stream.append(
                     (
                         ts,
-                        CandleClose(epic=cseries.epic, period=cseries.period, candle=c),
+                        CandleClose(instrument=cseries.instrument, period=cseries.period, candle=c),
                     )
                 )
 
@@ -103,11 +103,11 @@ class BacktestStreamer(Streamer):
                     event_ts = event.timestamp
                     # Mark-to-market uses mid price by default
                     self._client._set_mark_price(
-                        event.epic, (event.bid + event.offer) / 2
+                        event.instrument, (event.bid + event.offer) / 2
                     )
                 elif isinstance(event, CandleClose):
                     event_ts = event.candle.timestamp
-                    self._client._set_mark_price(event.epic, event.candle.close)
+                    self._client._set_mark_price(event.instrument, event.candle.close)
 
                 # Normalise to a stable ISO string with Z
                 ts_str = event_ts.strip()

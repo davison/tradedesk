@@ -80,7 +80,7 @@ class TestRunner:
     async def test_run_strategies_async_single(self):
         """Test running a single strategy."""
         mock_strategy = MagicMock()
-        mock_strategy.subscriptions = [SimpleNamespace(epic="CS.D.EURUSD.CFD.IP")]
+        mock_strategy.subscriptions = [SimpleNamespace(instrument="CS.D.EURUSD.CFD.IP")]
         mock_strategy.__class__.__name__ = "TestStrategy"
         mock_strategy.run = AsyncMock()
         
@@ -97,7 +97,7 @@ class TestRunner:
                 try:
                     # Check if this is the "Loaded ..." call
                     if (len(actual_call[0]) >= 5 and 
-                        actual_call[0][0] == "Loaded %s monitoring %d EPIC%s: %s" and
+                        actual_call[0][0] == "Loaded %s monitoring %d instrument%s: %s" and
                         actual_call[0][1] == "TestStrategy" and
                         actual_call[0][2] == 1):
                         found = True
@@ -114,12 +114,12 @@ class TestRunner:
     async def test_run_strategies_async_multiple(self):
         """Test running multiple strategies."""
         mock_strategy1 = MagicMock()
-        mock_strategy1.subscriptions = [SimpleNamespace(epic="CS.D.EURUSD.CFD.IP")]
+        mock_strategy1.subscriptions = [SimpleNamespace(instrument="CS.D.EURUSD.CFD.IP")]
         mock_strategy1.__class__.__name__ = "Strategy1"
         mock_strategy1.run = AsyncMock()
         
         mock_strategy2 = MagicMock()
-        mock_strategy2.subscriptions = [SimpleNamespace(epic="CS.D.GBPUSD.CFD.IP")]
+        mock_strategy2.subscriptions = [SimpleNamespace(instrument="CS.D.GBPUSD.CFD.IP")]
         mock_strategy2.__class__.__name__ = "Strategy2"
         mock_strategy2.run = AsyncMock()
         
@@ -157,7 +157,7 @@ class TestRunner:
                 super().__init__(client, **kwargs)
                 raise ValueError("Missing credentials")
 
-            async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+            async def on_price_update(self, market_databid, offer, timestamp, raw_data):
                 pass
 
         client = MagicMock()
@@ -179,7 +179,7 @@ class TestRunner:
     def test_run_strategies_client_error(self):
         """Runner exits if a strategy run task errors, and closes the client."""
         class ErrorStrategy(BaseStrategy):
-            async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+            async def on_price_update(self, market_databid, offer, timestamp, raw_data):
                 pass
 
             async def run(self):
@@ -203,7 +203,7 @@ class TestRunner:
     def test_run_strategies_keyboard_interrupt(self):
         """Test graceful handling of KeyboardInterrupt."""
         class MockStrategy(BaseStrategy):
-            async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+            async def on_price_update(self, market_databid, offer, timestamp, raw_data):
                 pass
 
         client = MagicMock()

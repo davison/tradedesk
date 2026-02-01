@@ -6,11 +6,11 @@ from tradedesk.providers.backtest.client import BacktestClient
 def compute_unrealised_pnl(client: BacktestClient) -> float:
     """Compute unrealised PnL for all open positions using the latest mark price."""
     unreal = 0.0
-    for epic, pos in client.positions.items():
-        mark = client.get_mark_price(epic)
+    for instrument, pos in client.positions.items():
+        mark = client.get_mark_price(instrument)
         if mark is None:
             raise RuntimeError(
-                f"No mark price available for {epic} (no data replayed yet)"
+                f"No mark price available for {instrument} (no data replayed yet)"
             )
 
         if pos.direction == "LONG":

@@ -411,8 +411,9 @@ class IGClient(Client):
         """
         return "/positions/otc"
 
-    async def get_market_snapshot(self, epic: str) -> dict[str, Any]:
-        """Return the latest market snapshot for the given EPIC."""
+    async def get_market_snapshot(self, instrument: str) -> dict[str, Any]:
+        """Return the latest market snapshot for the given instrument."""
+        epic = instrument  # IG API uses 'epic' terminology
         return await self._request("GET", f"/markets/{epic}")
 
     async def get_instrument_metadata(
@@ -500,7 +501,7 @@ class IGClient(Client):
 
     async def place_market_order(
         self,
-        epic: str,
+        instrument: str,
         direction: str,
         size: float,
         currency: str = "GBP",
@@ -515,6 +516,7 @@ class IGClient(Client):
         IG uses POST /positions/otc for both CFD and Spreadbet.
         For SPREADBET accounts, expiry must typically be 'DFB' (not '-').
         """
+        epic = instrument  # IG API uses 'epic' terminology
         acct_type = (await self._ensure_account_type() or "").upper()
 
         eff_expiry = expiry
@@ -597,7 +599,7 @@ class IGClient(Client):
 
     async def place_market_order_confirmed(
         self,
-        epic: str,
+        instrument: str,
         direction: str,
         size: float,
         currency: str = "GBP",
@@ -609,7 +611,7 @@ class IGClient(Client):
         confirm_poll_s: float = 0.25,
     ) -> dict[str, Any]:
         res = await self.place_market_order(
-            epic=epic,
+            instrument=instrument,
             direction=direction,
             size=size,
             expiry=expiry,
@@ -633,13 +635,14 @@ class IGClient(Client):
         return deal
 
     async def get_historical_candles(
-        self, epic: str, period: str, num_points: int
+        self, instrument: str, period: str, num_points: int
     ) -> list[Candle]:
         """
-        Fetch the most recent `num_points` candles for (epic, period) via IG REST /prices.
+        Fetch the most recent `num_points` candles for (instrument, period) via IG REST /prices.
 
         Returns candles ordered oldest -> newest.
         """
+        epic = instrument  # IG API uses 'epic' terminology
         if num_points <= 0:
             return []
 

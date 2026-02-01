@@ -46,17 +46,17 @@ def configure_logging(level: str = "INFO", force: bool = False) -> None:
     root_logger.addHandler(handler)
 
 
-def _epics_from_subscriptions(strategy: BaseStrategy) -> list[str]:
-    epics: list[str] = []
+def _instruments_from_subscriptions(strategy: BaseStrategy) -> list[str]:
+    instruments: list[str] = []
     seen = set()
 
     for sub in getattr(strategy, "subscriptions", []) or []:
-        epic = getattr(sub, "epic", None)
-        if epic and epic not in seen:
-            seen.add(epic)
-            epics.append(epic)
+        instrument = getattr(sub, "instrument", None)
+        if instrument and instrument not in seen:
+            seen.add(instrument)
+            instruments.append(instrument)
 
-    return epics
+    return instruments
 
 
 async def _run_strategies_async(
@@ -77,23 +77,23 @@ async def _run_strategies_async(
         return
 
     for strategy in strategy_instances:
-        epics = _epics_from_subscriptions(strategy)
+        instruments = _instruments_from_subscriptions(strategy)
         log.info(
-            "Loaded %s monitoring %d EPIC%s: %s",
+            "Loaded %s monitoring %d instrument%s: %s",
             strategy.__class__.__name__,
-            len(epics),
-            "s" if len(epics) != 1 else "",
-            ", ".join(epics) if epics else "(none)",
+            len(instruments),
+            "s" if len(instruments) != 1 else "",
+            ", ".join(instruments) if instruments else "(none)",
         )
 
-    all_epics = set()
+    all_instruments = set()
     for strategy in strategy_instances:
-        all_epics.update(_epics_from_subscriptions(strategy))
+        all_instruments.update(_instruments_from_subscriptions(strategy))
 
-    if all_epics:
-        log.info("Total unique EPICs to monitor: %d", len(all_epics))
+    if all_instruments:
+        log.info("Total unique instruments to monitor: %d", len(all_instruments))
     else:
-        log.warning("No EPICs defined in any strategy - nothing to monitor")
+        log.warning("No instruments defined in any strategy - nothing to monitor")
 
     tasks = [asyncio.create_task(strategy.run()) for strategy in strategy_instances]
 

@@ -27,7 +27,7 @@ async def test_handle_event_marketdata_updates_last_update_and_dispatches():
     before = s.last_update
 
     event = MarketData(
-        epic="EPIC",
+        instrument="EPIC",
         bid=1.0,
         offer=1.1,
         timestamp="2025-12-28T00:00:00Z",
@@ -48,7 +48,7 @@ async def test_handle_event_candleclose_dispatches_and_uses_default_storage():
     class S(BaseStrategy):
         SUBSCRIPTIONS = [ChartSubscription("EPIC", "5MINUTE")]
 
-        async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+        async def on_price_update(self, market_databid, offer, timestamp, raw_data):
             pass
 
     s = S(MagicMock())
@@ -62,7 +62,7 @@ async def test_handle_event_candleclose_dispatches_and_uses_default_storage():
         volume=10.0,
         tick_count=3,
     )
-    event = CandleClose(epic="EPIC", period="5MINUTE", candle=candle)
+    event = CandleClose(instrument="EPIC", period="5MINUTE", candle=candle)
 
     await s._handle_event(event)
 

@@ -32,9 +32,9 @@ def test_backtest_replays_candles_and_executes_virtual_trades():
 
             # trade: buy on first candle, sell on last candle
             if cc.candle.close == 10:
-                await self.client.place_market_order(epic=cc.epic, direction="BUY", size=1.0)
+                await self.client.place_market_order(instrument=cc.instrument, direction="BUY", size=1.0)
             if cc.candle.close == 12:
-                await self.client.place_market_order(epic=cc.epic, direction="SELL", size=1.0)
+                await self.client.place_market_order(instrument=cc.instrument, direction="SELL", size=1.0)
 
             # keep default chart storage behavior
             await super().on_candle_close(cc)

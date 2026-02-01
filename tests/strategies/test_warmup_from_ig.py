@@ -11,8 +11,8 @@ class TestStrategyWarmupFromIG:
         Strat = DummyStrategy([sub])
 
         class FakeClient:
-            async def get_historical_candles(self, epic, period, num_points):
-                assert epic == "EPIC"
+            async def get_historical_candles(self, instrument, period, num_points):
+                assert instrument == "EPIC"
                 assert period == "1MINUTE"
                 assert num_points == 14
                 return make_candles(14)

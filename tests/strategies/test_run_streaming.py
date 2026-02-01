@@ -100,7 +100,7 @@ class TestRunStreaming:
 
         async def on_candle_close(cc):
             await strategy_module.BaseStrategy.on_candle_close(strat, cc)
-            seen_candles.append((cc.epic, cc.period, cc.candle))
+            seen_candles.append((cc.instrument, cc.period, cc.candle))
 
         strat.on_price_update = on_price_update  # type: ignore
         strat.on_candle_close = on_candle_close  # type: ignore
@@ -159,7 +159,7 @@ class TestRunStreaming:
                     break
 
             assert len(seen_market) == 1
-            assert seen_market[0].epic == "EPIC.MKT"
+            assert seen_market[0].instrument == "EPIC.MKT"
 
             assert len(seen_candles) == 1
             assert seen_candles[0][0] == "EPIC.CHT"
