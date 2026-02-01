@@ -334,3 +334,12 @@ size = atr_normalised_size(risk_per_trade, atr, ...)
 - [Indicator Guide](indicator_guide.md) - ATR and other indicators
 - [Portfolio Guide](portfolio_guide.md) - Multi-instrument risk management
 - [Strategy Guide](strategy_guide.md) - Integrating risk management in strategies
+
+---
+
+## License
+
+Licensed under the Apache License, Version 2.0.
+See: https://www.apache.org/licenses/LICENSE-2.0
+
+Copyright 2026 [Radius Red Ltd.](https://github.com/radiusred)
