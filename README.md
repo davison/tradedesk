@@ -95,8 +95,9 @@ Detailed tutorials are provided in the documentation guides listed below.
 
 ## Project status and guarantees
 
-* APIs may evolve as the framework matures
-* Backwards compatibility is maintained on a best-effort basis
+* APIs are evolving as the framework matures
+* Prior to a 1.0 release, there is NO guarantee of backward compatibility between
+    minor versions of the framework
 * The framework prioritises correctness and clarity over performance
 
 ## Further reading
