@@ -19,7 +19,7 @@ class TestBaseStrategy:
         class TestStrategy(BaseStrategy):
             SUBSCRIPTIONS = [MarketSubscription("CS.D.EURUSD.CFD.IP"), MarketSubscription("CS.D.GBPUSD.CFD.IP")]
             
-            async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+            async def on_price_update(self, market_databid, offer, timestamp, raw_data):
                 pass
         
         strategy = TestStrategy(mock_client)
@@ -48,7 +48,7 @@ class TestBaseStrategy:
                 self.updates = []
 
             async def on_price_update(self, market_data):
-                self.updates.append((market_data.epic, market_data.bid, market_data.offer))
+                self.updates.append((market_data.instrument, market_data.bid, market_data.offer))
         
         strategy = TestStrategy(mock_client)
         
@@ -82,7 +82,7 @@ class TestBaseStrategy:
 
             async def on_price_update(self, market_data):
                 updates.append({
-                    'epic': market_data.epic,
+                    'instrument': market_data.instrument,
                     'bid': market_data.bid,
                     'offer': market_data.offer
                 })
@@ -112,10 +112,10 @@ class TestBaseStrategy:
         # EURUSD changed, GBPUSD didn't change on second poll
         assert len(updates) == 3  # First EURUSD, First GBPUSD, Second EURUSD
         
-        # Verify EPIC order in updates
-        assert updates[0]['epic'] == "CS.D.EURUSD.CFD.IP"
-        assert updates[1]['epic'] == "CS.D.GBPUSD.CFD.IP"
-        assert updates[2]['epic'] == "CS.D.EURUSD.CFD.IP"
+        # Verify instrument order in updates
+        assert updates[0]['instrument'] == "CS.D.EURUSD.CFD.IP"
+        assert updates[1]['instrument'] == "CS.D.GBPUSD.CFD.IP"
+        assert updates[2]['instrument'] == "CS.D.EURUSD.CFD.IP"
     
     @pytest.mark.asyncio
     async def test_polling_mode_exception_handling(self):
@@ -172,7 +172,7 @@ class TestBaseStrategy:
         class TestStrategy(BaseStrategy):
             SUBSCRIPTIONS = [MarketSubscription("CS.D.EURUSD.CFD.IP")]
 
-            async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+            async def on_price_update(self, market_databid, offer, timestamp, raw_data):
                 pass
 
         strategy = TestStrategy(mock_client)
@@ -219,11 +219,11 @@ class TestConcreteStrategy:
                 self.stopped = False
                 self.updates = []
             
-            async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+            async def on_price_update(self, market_data):
                 self.updates.append({
-                    'epic': epic,
-                    'bid': bid,
-                    'offer': offer
+                    'instrument': market_data.instrument,
+                    'bid': market_data.bid,
+                    'offer': market_data.offer
                 })
             
             async def run(self):

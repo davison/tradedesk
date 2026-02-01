@@ -46,7 +46,7 @@ class TestIGClient:
             client = IGClient()
             client._session = mock_aiohttp_session
 
-            res = await client.place_market_order(epic="CS.D.EURUSD.TODAY.IP", direction="BUY", size=1.0)
+            res = await client.place_market_order(instrument="CS.D.EURUSD.TODAY.IP", direction="BUY", size=1.0)
             assert res == {"dealReference": "REF123"}
 
             (_, url), kwargs = mock_aiohttp_session.request.call_args
@@ -75,7 +75,7 @@ class TestIGClient:
             # Force SPREADBET behaviour without calling /accounts
             client._ensure_account_type = AsyncMock(return_value="SPREADBET")  # type: ignore[method-assign]
 
-            await client.place_market_order(epic="CS.D.EURUSD.TODAY.IP", direction="BUY", size=1.0)
+            await client.place_market_order(instrument="CS.D.EURUSD.TODAY.IP", direction="BUY", size=1.0)
 
             (_, url), kwargs = mock_aiohttp_session.request.call_args
             assert url.endswith("/positions/otc")
@@ -823,7 +823,7 @@ class TestIGClient:
             client._session = mock_aiohttp_session
 
             result = await client.place_market_order_confirmed(
-                epic="CS.D.EURUSD.TODAY.IP",
+                instrument="CS.D.EURUSD.TODAY.IP",
                 direction="BUY",
                 size=1.0,
                 confirm_timeout_s=1.0,
@@ -851,7 +851,7 @@ class TestIGClient:
 
             with pytest.raises(RuntimeError, match="Expected dealReference"):
                 await client.place_market_order_confirmed(
-                    epic="CS.D.EURUSD.TODAY.IP",
+                    instrument="CS.D.EURUSD.TODAY.IP",
                     direction="BUY",
                     size=1.0
                 )
@@ -884,7 +884,7 @@ class TestIGClient:
 
             with pytest.raises(DealNotAcceptedException, match="Deal not accepted"):
                 await client.place_market_order_confirmed(
-                    epic="CS.D.EURUSD.TODAY.IP",
+                    instrument="CS.D.EURUSD.TODAY.IP",
                     direction="BUY",
                     size=1.0
                 )

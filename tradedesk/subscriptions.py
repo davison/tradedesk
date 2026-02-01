@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 class Subscription(ABC):
     """Base class for different subscription types."""
 
-    epic: str
+    instrument: str
 
     @abstractmethod
     def get_item_name(self) -> str: ...
@@ -39,7 +39,7 @@ class MarketSubscription(Subscription):
 
     def get_item_name(self) -> str:
         """Returns Lightstreamer item name format."""
-        return f"MARKET:{self.epic}"
+        return f"MARKET:{self.instrument}"
 
     def get_fields(self) -> list[str]:
         """Returns Lightstreamer fields to subscribe to."""
@@ -54,7 +54,7 @@ class ChartSubscription(Subscription):
     Triggers strategy's on_candle_update() callback when candles complete.
 
     Args:
-        epic: The instrument identifier
+        instrument: The instrument identifier
         period: Candle period - one of:
             "1MINUTE", "5MINUTE", "15MINUTE", "30MINUTE",
             "HOUR", "4HOUR", "DAY", "WEEK"
@@ -95,7 +95,7 @@ class ChartSubscription(Subscription):
 
     def get_item_name(self) -> str:
         """Returns Lightstreamer item name format."""
-        return f"CHART:{self.epic}:{self.period}"
+        return f"CHART:{self.instrument}:{self.period}"
 
     def get_fields(self) -> list[str]:
         """Returns Lightstreamer fields to subscribe to."""

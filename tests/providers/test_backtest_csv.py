@@ -25,14 +25,14 @@ def test_parse_ts_accepts_space_and_z():
     
 @pytest.mark.asyncio
 async def test_backtest_trade_has_timestamp():
-    epic = "EPIC"
+    instrument = "EPIC"
     client = BacktestClient(candle_series=[], market_series=[])
     await client.start()
 
-    client._set_mark_price(epic, 100.0)
+    client._set_mark_price(instrument, 100.0)
     client._set_current_timestamp("2025-01-01T00:00:00Z")
 
-    await client.place_market_order(epic, "BUY", 1.0)
+    await client.place_market_order(instrument, "BUY", 1.0)
 
     assert client.trades[0].timestamp == "2025-01-01T00:00:00Z"
 
@@ -55,13 +55,13 @@ def test_backtest_from_csv_replays_and_trades(tmp_path: Path):
 
         async def on_candle_close(self, candle_close: CandleClose):
             if candle_close.candle.close == 10:
-                await self.client.place_market_order(epic=candle_close.epic, direction="BUY", size=1.0)
+                await self.client.place_market_order(instrument=candle_close.instrument, direction="BUY", size=1.0)
             if candle_close.candle.close == 12:
-                await self.client.place_market_order(epic=candle_close.epic, direction="SELL", size=1.0)
+                await self.client.place_market_order(instrument=candle_close.instrument, direction="SELL", size=1.0)
             await super().on_candle_close(candle_close)
 
     def factory():
-        c = BacktestClient.from_csv(csv_path, epic="EPIC", period="5MINUTE")
+        c = BacktestClient.from_csv(csv_path, instrument="EPIC", period="5MINUTE")
         created["client"] = c
         return c
 
@@ -120,20 +120,20 @@ def test_backtest_market_csvs_drive_price_updates_and_signals(tmp_path: Path):
         def __init__(self, client, lookback=10):
             super().__init__(client)
             self.lookback = lookback
-            self.prices: dict[str, list[float]] = {s.epic: [] for s in self.SUBSCRIPTIONS}
+            self.prices: dict[str, list[float]] = {s.instrument: [] for s in self.SUBSCRIPTIONS}
             self.signals: list[tuple[str, str]] = []
 
         async def on_price_update(self, md: MarketData):
             mid = (md.bid + md.offer) / 2
-            self.prices[md.epic].append(mid)
-            if len(self.prices[md.epic]) < self.lookback:
+            self.prices[md.instrument].append(mid)
+            if len(self.prices[md.instrument]) < self.lookback:
                 return
-            window = self.prices[md.epic][-self.lookback:]
+            window = self.prices[md.instrument][-self.lookback:]
             momentum = (window[-1] - window[0]) / window[0]
             if momentum > 0.001:
-                self.signals.append((md.epic, "UP"))
+                self.signals.append((md.instrument, "UP"))
             elif momentum < -0.001:
-                self.signals.append((md.epic, "DOWN"))
+                self.signals.append((md.instrument, "DOWN"))
 
     created = {}
 

@@ -50,19 +50,19 @@ class Client(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def get_market_snapshot(self, epic: str) -> dict[str, Any]:
+    async def get_market_snapshot(self, instrument: str) -> dict[str, Any]:
         raise NotImplementedError
 
     @abc.abstractmethod
     async def get_historical_candles(
-        self, epic: str, period: str, num_points: int
+        self, instrument: str, period: str, num_points: int
     ) -> list[Candle]:
         raise NotImplementedError
 
     @abc.abstractmethod
     async def place_market_order(
         self,
-        epic: str,
+        instrument: str,
         direction: str,
         size: float,
         currency: str = "USD",
@@ -73,18 +73,18 @@ class Client(abc.ABC):
         This method should not block, the client is responsible for tracking order status.
         """
         raise NotImplementedError
-    
+
     @abc.abstractmethod
     async def place_market_order_confirmed(
         self,
-        epic: str,
+        instrument: str,
         direction: str,
         size: float,
         currency: str = "USD",
         force_open: bool = True,
     ) -> dict[str, Any]:
         """Place a market order and confirm its execution.
-        
+
         This method should block until the order is fully executed.
         """
         raise NotImplementedError

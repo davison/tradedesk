@@ -38,7 +38,7 @@ class Strategy(BaseStrategy):
         ChartSubscription("CS.D.EURUSD.CFD.IP", "5MINUTE"),
     ]
 
-    async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+    async def on_price_update(self, instrument, bid, offer, timestamp, raw_data):
         pass
 
 
@@ -169,7 +169,7 @@ async def test_heartbeat_threshold_tuned_for_chart_only():
             ChartSubscription("CS.D.EURUSD.CFD.IP", "5MINUTE"),
         ]
 
-        async def on_price_update(self, epic, bid, offer, timestamp, raw_data):
+        async def on_price_update(self, instrument, bid, offer, timestamp, raw_data):
             pass
 
     strat = ChartOnlyStrategy(client)

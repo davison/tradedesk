@@ -110,7 +110,7 @@ class Lightstreamer(Streamer):
                                 timespec="seconds"
                             )
                             + "Z",
-                            "epic": epic,
+                            "instrument": epic,
                             "bid": float(bid_str),
                             "offer": float(offer_str),
                             "raw": {
@@ -189,7 +189,7 @@ class Lightstreamer(Streamer):
 
                                 data = {
                                     "type": "chart",
-                                    "epic": sub.epic,
+                                    "instrument": sub.instrument,
                                     "period": sub.period,
                                     "candle": {
                                         "timestamp": update.getValue("UTM")
@@ -210,7 +210,7 @@ class Lightstreamer(Streamer):
                         def onSubscriptionError(self, code: Any, message: Any) -> None:
                             log.error(
                                 "Chart subscription error for %s: %s - %s",
-                                sub.epic,
+                                sub.instrument,
                                 code,
                                 message,
                             )
@@ -218,13 +218,13 @@ class Lightstreamer(Streamer):
                         def onSubscription(self) -> None:
                             log.info(
                                 "Chart subscription active for %s %s",
-                                sub.epic,
+                                sub.instrument,
                                 sub.period,
                             )
 
                         def onUnsubscription(self) -> None:
                             log.info(
-                                "Chart unsubscribed for %s %s", sub.epic, sub.period
+                                "Chart unsubscribed for %s %s", sub.instrument, sub.period
                             )
 
                     return ChartListener()
@@ -292,7 +292,7 @@ class Lightstreamer(Streamer):
                 payload = await market_queue.get()
                 try:
                     event = MarketData(
-                        epic=payload["epic"],
+                        instrument=payload["instrument"],
                         bid=payload["bid"],
                         offer=payload["offer"],
                         timestamp=payload["timestamp"],
@@ -302,7 +302,7 @@ class Lightstreamer(Streamer):
                 except Exception:
                     log.exception(
                         "Unhandled exception in market_consumer for %s",
-                        payload.get("epic"),
+                        payload.get("instrument"),
                     )
 
         async def chart_consumer() -> None:
@@ -312,7 +312,7 @@ class Lightstreamer(Streamer):
                     candle_data = payload["candle"]
                     candle = Candle(**candle_data)
                     event = CandleClose(
-                        epic=payload["epic"],
+                        instrument=payload["instrument"],
                         period=payload["period"],
                         candle=candle,
                     )
