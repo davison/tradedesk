@@ -1,7 +1,6 @@
 import numpy as np
 
 from tradedesk.marketdata import ChartHistory
-from tradedesk.subscriptions import ChartSubscription
 
 
 class TestChartHistory:

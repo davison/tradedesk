@@ -4,14 +4,14 @@ from tradedesk.indicators.vwap import VWAP
 from tradedesk.marketdata import Candle
 
 
-def candle(ts: str, h: float, l: float, c: float, v: float) -> Candle:
+def candle(ts: str, high: float, low: float, close: float, vol: float) -> Candle:
     return Candle(
         timestamp=ts,
-        open=c,
-        high=h,
-        low=l,
-        close=c,
-        volume=v,
+        open=close,
+        high=high,
+        low=low,
+        close=close,
+        volume=vol,
         tick_count=1,
     )
 

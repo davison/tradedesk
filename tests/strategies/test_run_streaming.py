@@ -55,9 +55,9 @@ class FakeLSClient:
 
     def subscribe(self, sub):
         self.subscribed.append(sub)
-        for l in getattr(sub, "listeners", []):
-            if hasattr(l, "onSubscription"):
-                l.onSubscription()
+        for lsnr in getattr(sub, "listeners", []):
+            if hasattr(lsnr, "onSubscription"):
+                lsnr.onSubscription()
 
     def disconnect(self):
         self.disconnected = True

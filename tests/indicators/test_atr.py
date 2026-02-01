@@ -4,18 +4,16 @@ from tradedesk.indicators.atr import ATR
 from tradedesk.marketdata import Candle
 
 
-def candle(h: float, l: float, c: float) -> Candle:
-    # open is irrelevant for ATR; set it equal to close for simplicity
+def candle(high: float, low: float, close: float) -> Candle:
     return Candle(
         timestamp="2020-01-01T00:00:00Z",
-        open=c,
-        high=h,
-        low=l,
-        close=c,
+        open=close,
+        high=high,
+        low=low,
+        close=close,
         volume=1.0,
         tick_count=1,
     )
-
 
 class TestATR:
     def test_rejects_non_positive_period(self) -> None:

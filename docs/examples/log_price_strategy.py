@@ -16,10 +16,8 @@ Requirements:
     - tradedesk library installed
 """
 
-import asyncio
 import json
 import logging
-from typing import Any, Dict
 
 from tradedesk import BaseStrategy, run_strategies
 from tradedesk.marketdata import MarketData

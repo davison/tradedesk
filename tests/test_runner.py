@@ -2,10 +2,8 @@
 """
 Tests for the runner module.
 """
-import asyncio
-import sys
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, Mock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from tradedesk.runner import run_strategies, configure_logging, _run_strategies_async
 from tradedesk.strategy import BaseStrategy
@@ -92,17 +90,6 @@ class TestRunner:
         
         with patch('tradedesk.runner.log.info') as mock_info:
             await _run_strategies_async([mock_strategy], mock_client)
-            
-            # Verify logging - check the actual call format
-            expected_calls = [
-                call(
-                    "Loaded %s monitoring %d EPIC%s: %s",
-                    "TestStrategy",
-                    1,
-                    "",
-                    "CS.D.EURUSD.CFD.IP"
-                )
-            ]
             
             # Check if any call matches our expected format
             found = False

@@ -4,13 +4,13 @@ from tradedesk.indicators.stochastic import Stochastic
 from tradedesk.marketdata import Candle
 
 
-def candle(h: float, l: float, c: float) -> Candle:
+def candle(high: float, low: float, close: float) -> Candle:
     return Candle(
         timestamp="2020-01-01T00:00:00Z",
-        open=c,
-        high=h,
-        low=l,
-        close=c,
+        open=close,
+        high=high,
+        low=low,
+        close=close,
         volume=1.0,
         tick_count=1,
     )

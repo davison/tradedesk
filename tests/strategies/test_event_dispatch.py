@@ -5,7 +5,6 @@ from tradedesk.marketdata import Candle, MarketData
 from tradedesk.marketdata import CandleClose
 from tradedesk.strategy import BaseStrategy
 
-from unittest.mock import AsyncMock
 
 class Strat(BaseStrategy):
     SUBSCRIPTIONS = []

@@ -3,7 +3,7 @@
 Tests for the config module.
 """
 import os
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 import pytest
 from tradedesk.providers.ig.settings import Settings, settings
 
