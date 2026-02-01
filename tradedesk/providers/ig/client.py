@@ -597,14 +597,13 @@ class IGClient(Client):
 
     async def place_market_order_confirmed(
         self,
-        *,
         epic: str,
         direction: str,
         size: float,
-        expiry: str = "-",
         currency: str = "GBP",
         force_open: bool = False,
         time_in_force: str = "FILL_OR_KILL",
+        expiry: str = "-",
         guaranteed_stop: bool = False,
         confirm_timeout_s: float = 10.0,
         confirm_poll_s: float = 0.25,
