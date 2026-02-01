@@ -12,6 +12,7 @@ from tradedesk.providers.backtest.streamer import (
     CandleSeries,
     MarketSeries,
 )
+from tradedesk.types import Direction
 
 
 @dataclass
@@ -26,7 +27,7 @@ class Trade:
 @dataclass
 class Position:
     instrument: str
-    direction: str  # "LONG" or "SHORT"
+    direction: Direction
     size: float
     entry_price: float
 
@@ -367,13 +368,13 @@ class BacktestClient(Client):
         if pos is None:
             self.positions[instrument] = Position(
                 instrument=instrument,
-                direction="LONG" if direction == "BUY" else "SHORT",
+                direction=Direction.LONG if direction == "BUY" else Direction.SHORT,
                 size=float(size),
                 entry_price=price,
             )
         else:
-            same = (pos.direction == "LONG" and direction == "BUY") or (
-                pos.direction == "SHORT" and direction == "SELL"
+            same = (pos.direction == Direction.LONG and direction == "BUY") or (
+                pos.direction == Direction.SHORT and direction == "SELL"
             )
             if same:
                 # Increase position: weighted avg entry
@@ -385,7 +386,7 @@ class BacktestClient(Client):
             else:
                 # Opposite direction: close (only supports full close or reduce; compute realised on reduced amount)
                 close_size = min(pos.size, float(size))
-                if pos.direction == "LONG":
+                if pos.direction == Direction.LONG:
                     self.realised_pnl += (price - pos.entry_price) * close_size
                 else:
                     self.realised_pnl += (pos.entry_price - price) * close_size
@@ -398,7 +399,7 @@ class BacktestClient(Client):
                 if residual > 0:
                     self.positions[instrument] = Position(
                         instrument=instrument,
-                        direction="LONG" if direction == "BUY" else "SHORT",
+                        direction=Direction.LONG if direction == "BUY" else Direction.SHORT,
                         size=residual,
                         entry_price=price,
                     )

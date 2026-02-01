@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from tradedesk.providers.backtest.client import BacktestClient
+from tradedesk.types import Direction
 
 
 def compute_unrealised_pnl(client: BacktestClient) -> float:
@@ -13,9 +14,9 @@ def compute_unrealised_pnl(client: BacktestClient) -> float:
                 f"No mark price available for {instrument} (no data replayed yet)"
             )
 
-        if pos.direction == "LONG":
+        if pos.direction == Direction.LONG:
             unreal += (mark - pos.entry_price) * pos.size
-        elif pos.direction == "SHORT":
+        elif pos.direction == Direction.SHORT:
             unreal += (pos.entry_price - mark) * pos.size
         else:
             raise ValueError(f"Unknown position direction: {pos.direction!r}")
