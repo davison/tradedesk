@@ -3,8 +3,8 @@
 Tests for the BaseStrategy class.
 """
 import asyncio
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, Mock, patch, PropertyMock
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from tradedesk.strategy import BaseStrategy
 from tradedesk.subscriptions import MarketSubscription

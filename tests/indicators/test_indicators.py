@@ -1,10 +1,9 @@
 # tests/test_indicators.py
-import math
 
 import pytest
 
 from tradedesk.marketdata import Candle
-from tradedesk.indicators import MACD, MFI, WilliamsR, SMA
+from tradedesk.indicators import MACD, MFI, WilliamsR
 
 def candle(
     open_: float,

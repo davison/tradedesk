@@ -150,7 +150,6 @@ def test_backtest_market_csvs_drive_price_updates_and_signals(tmp_path: Path):
     with patch("sys.exit") as _:
         run_strategies(strategy_specs=[MomentumLike], client_factory=factory, setup_logging=False)
 
-    strat = None  # we can't easily capture instance without changing runner; signals are deterministic enough
     # Verify at least one UP for GBP and one DOWN for EUR occurred
     # (The strategy instance is internal; so assert indirectly via client mark prices after replay)
     client = created["client"]
