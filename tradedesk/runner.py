@@ -15,6 +15,12 @@ from tradedesk.strategy import BaseStrategy
 log = logging.getLogger(__name__)
 
 
+__all__ = [
+    "configure_logging",
+    "run_strategies",
+]
+
+
 def configure_logging(level: str = "INFO", force: bool = False) -> None:
     """
     Configure root logger with console output.
@@ -188,15 +194,26 @@ def run_strategies(
     setup_logging: bool = True,
 ) -> None:
     """
-    Public synchronous entry point.
+    Run one or more strategies against a live data provider.
 
-    The framework:
-      - constructs the provider client via client_factory()
-      - awaits client.start()
-      - runs strategies until cancelled/errored
-      - awaits client.close() on exit
+    This is the main synchronous entry point for the `tradedesk` runner.
+    It manages the asyncio event loop and the lifecycle of the provider
+    client and strategies.
 
-    User code remains synchronous.
+    The framework will:
+      - Construct the provider client via `client_factory()`.
+      - Await `client.start()` to authenticate and connect.
+      - Instantiate and run all strategies concurrently.
+      - Await `client.close()` on graceful shutdown or error.
+
+    Args:
+        strategy_specs: A list of strategy specifications. Each spec can be
+            a `BaseStrategy` subclass, or a tuple of `(StrategyClass, kwargs)`.
+        client_factory: A callable that returns an unstarted `Client` instance.
+        log_level: The logging level to configure (e.g., "INFO", "DEBUG").
+            If `None`, defaults to "INFO".
+        setup_logging: If `True`, configures the root logger. Set to `False`
+            if the application handles its own logging setup.
     """
     exit_code = 0
 

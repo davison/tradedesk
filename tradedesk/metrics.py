@@ -7,6 +7,16 @@ from typing import Any, Iterable
 from tradedesk.types import Direction
 
 
+__all__ = [
+    "Metrics",
+    "RoundTrip",
+    "compute_metrics",
+    "equity_rows_from_round_trips",
+    "max_drawdown",
+    "round_trips_from_fills",
+]
+
+
 @dataclass(frozen=True)
 class RoundTrip:
     """A completed round-trip trade (entry + exit)."""

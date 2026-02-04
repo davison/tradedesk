@@ -7,6 +7,12 @@ from typing import Mapping
 from tradedesk.portfolio.types import Instrument
 
 
+__all__ = [
+    "EqualSplitRiskPolicy",
+    "RiskAllocationPolicy",
+]
+
+
 class RiskAllocationPolicy(ABC):
     """
     Base class for portfolio risk allocation policies.

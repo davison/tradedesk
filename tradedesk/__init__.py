@@ -5,34 +5,6 @@ Copyright 2026 Radius Red Ltd.
 
 Provides authenticated API access, Lightstreamer streaming, and a base
 framework for implementing trading strategies.
-
-Quick start:
-    1. Create a .env file with your IG credentials
-    2. Implement your strategy by subclassing BaseStrategy
-    3. Call run_strategies() with your strategy classes
-
-Example:
-    # my_strategies.py
-    from tradedesk import BaseStrategy
-
-    class MyStrategy(BaseStrategy):
-        SUBSCRIPTIONS = [MarketSubscription("CS.D.GBPUSD.TODAY.IP")]
-
-        async def on_price_update(self, market_data):
-            # Your trading logic here
-            # Access: market_data.instrument, market_data.bid, market_data.offer
-            pass
-
-    # main.py
-    import asyncio
-    from tradedesk.providers.ig.client import IGClient
-    from tradedesk import run_strategies
-    from my_strategies import MyStrategy
-
-    if __name__ == "__main__":
-        client = IGClient()
-        await client.start()
-        run_strategies(client, [MyStrategy])
 """
 
 from .strategy import BaseStrategy

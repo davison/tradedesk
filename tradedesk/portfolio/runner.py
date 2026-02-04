@@ -6,6 +6,9 @@ from tradedesk.portfolio.types import CandleCloseEvent, Instrument, PortfolioStr
 from tradedesk.portfolio.policy import RiskAllocationPolicy
 
 
+__all__ = ["PortfolioRunner"]
+
+
 @dataclass
 class PortfolioRunner:
     """

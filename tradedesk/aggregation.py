@@ -6,6 +6,12 @@ from typing import Optional
 from tradedesk.marketdata import Candle
 
 
+__all__ = [
+    "CandleAggregator",
+    "choose_base_period",
+]
+
+
 def _period_to_seconds(period: str) -> int:
     """Convert period string to seconds."""
     p = period.strip().upper()
