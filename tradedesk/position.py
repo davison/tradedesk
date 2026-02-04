@@ -4,15 +4,25 @@ from tradedesk.types import Direction
 from tradedesk.marketdata import Candle
 
 
+__all__ = ["PositionTracker"]
+
+
 class PositionTracker:
     """
-    Manages position state for trading strategies.
+    Manages position state for a single instrument within a trading strategy.
 
-    Tracks:
-    - Position direction and size
-    - Entry price
-    - Bars held in position
-    - Maximum favorable excursion (MFE)
+    This is a stateful helper class that tracks the core attributes of an
+    open position, such as entry price, size, and duration. It also computes
+    metrics like Maximum Favorable Excursion (MFE).
+
+    Attributes:
+        direction: The current position direction (`Direction.LONG` or
+            `Direction.SHORT`), or `None` if flat.
+        size: The size of the current position, or `None` if flat.
+        entry_price: The execution price of the entry trade, or `None` if flat.
+        bars_held: The number of bars the position has been held.
+        mfe_points: The Maximum Favorable Excursion in points since the
+            position was opened.
     """
 
     def __init__(self) -> None:

@@ -25,6 +25,9 @@ from tradedesk.marketdata import CandleClose
 log = logging.getLogger(__name__)
 
 
+__all__ = ["BaseStrategy"]
+
+
 # ----------------------------------------------------------------------
 # Abstract base class for all strategies.
 # ----------------------------------------------------------------------
@@ -72,7 +75,6 @@ class BaseStrategy(abc.ABC):
             client: Authenticated provider client
             subscriptions: Optional explicit subscriptions for this instance.
                 If omitted, defaults to the class-level SUBSCRIPTIONS.
-            chart_history_length: Number of candles to retain per chart subscription.
         """
         self.client = client
         self.subscriptions = (
@@ -248,18 +250,29 @@ class BaseStrategy(abc.ABC):
 
     async def on_price_update(self, market_data: MarketData) -> None:
         """
-        Called whenever a price update is received for a subscribed MARKET.
+        Handle a tick-level price update for a subscribed instrument.
 
-        This is where you implement tick-level trading logic for market subscriptions.
+        This method is called by the framework whenever a price update is
+        received for a `MarketSubscription`. Subclasses should override this
+        to implement tick-level trading logic.
+
+        Args:
+            market_data: A `MarketData` object containing the latest bid/offer.
         """
         pass
 
     async def on_candle_close(self, candle_close: CandleClose) -> None:
         """
-        Called when a candle completes for a subscribed CHART.
+        Handle a completed candle for a subscribed instrument and period.
 
-        Default implementation stores candle in chart history.
-        Override to implement your candle-based trading logic.
+        This method is called by the framework when a candle completes for a
+        `ChartSubscription`. The default implementation stores the candle in the
+        corresponding `ChartHistory` instance. Subclasses should override this
+        to implement candle-based trading logic.
+
+        Args:
+            candle_close: A `CandleClose` object containing the completed candle
+                and its metadata.
         """
         # Store in chart history by default
         key = (candle_close.instrument, candle_close.period)

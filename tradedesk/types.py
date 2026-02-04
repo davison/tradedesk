@@ -3,6 +3,9 @@
 from enum import Enum
 
 
+__all__ = ["Direction"]
+
+
 class Direction(str, Enum):
     """Trading direction for a position.
 

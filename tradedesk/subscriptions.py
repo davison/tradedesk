@@ -10,6 +10,13 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 
+__all__ = [
+    "ChartSubscription",
+    "MarketSubscription",
+    "Subscription",
+]
+
+
 @dataclass
 class Subscription(ABC):
     """Base class for different subscription types."""
@@ -51,14 +58,15 @@ class ChartSubscription(Subscription):
     """
     Subscribe to OHLCV candle data for an instrument at a specific timeframe.
 
-    Triggers strategy's on_candle_update() callback when candles complete.
+    This subscription provides a stream of completed candles, which triggers the
+    strategy's `on_candle_close()` callback.
 
-    Args:
-        instrument: The instrument identifier
-        period: Candle period - one of:
-            "1MINUTE", "5MINUTE", "15MINUTE", "30MINUTE",
-            "HOUR", "4HOUR", "DAY", "WEEK"
-        fields: Optional custom field list (uses sensible defaults if None)
+    Attributes:
+        instrument: The instrument identifier (e.g., 'CS.D.GBPUSD.TODAY.IP').
+        period: The candle period. Common values include "1MINUTE", "5MINUTE",
+            "15MINUTE", "30MINUTE", "HOUR", "4HOUR", "DAY", "WEEK".
+        fields: An optional list of custom provider-specific fields to subscribe
+            to. If `None`, a default set of OHLCV and volume fields is used.
 
     Example:
         SUBSCRIPTIONS = [
