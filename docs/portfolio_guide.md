@@ -34,7 +34,7 @@ await runner.on_candle_close(candle_event)
 
 ### Portfolio Strategy Protocol
 
-Strategies managed by the portfolio must implement the `PortfolioStrategy` protocol:
+Strategies managed by the portfolio must implement the `PortfolioStrategy` protocol with a **two-phase lifecycle**:
 
 ```python
 from tradedesk.portfolio import PortfolioStrategy, CandleCloseEvent, Instrument
@@ -46,16 +46,32 @@ class MyStrategy:
         self._regime_active = False
 
     def set_risk_per_trade(self, value: float) -> None:
-        """Called by PortfolioRunner to set risk allocation."""
+        """Called by PortfolioRunner between phase 1 and 2."""
         self._risk_per_trade = value
 
     def is_regime_active(self) -> bool:
         """Return True if strategy's regime is active."""
         return self._regime_active
 
-    async def on_candle_close(self, event: CandleCloseEvent) -> None:
-        """Process candle close event."""
-        # Strategy logic here
+    async def update_state(self, event: CandleCloseEvent) -> None:
+        """Phase 1: Update indicators and regime state.
+
+        Do NOT make trading decisions here. This happens before
+        risk allocation, so risk_per_trade may not be current.
+        """
+        # Update indicators, regime filters, position tracking
+        candle = event.candle
+        # ... update logic ...
+        self._regime_active = self._check_regime(candle)
+
+    async def evaluate_signals(self) -> None:
+        """Phase 2: Evaluate signals and execute trades.
+
+        Make trading decisions here. This happens after risk
+        allocation, so risk_per_trade is current and correct.
+        """
+        # Check entry/exit conditions and place orders
+        # ... trading logic using self._risk_per_trade ...
         pass
 ```
 
@@ -112,14 +128,34 @@ class VolatilityWeightedPolicy:
 
 ## Risk Allocation Flow
 
-The `PortfolioRunner` applies risk budgets **before** processing each candle:
+The `PortfolioRunner` uses a **three-phase lifecycle** for each candle:
 
-1. Check which strategies have active regimes (`is_regime_active()`)
-2. Apply policy to allocate risk across active instruments
-3. Call `set_risk_per_trade()` on each strategy
-4. Forward the candle event to the relevant strategy
+### Phase 1: Update State
+```python
+await strategy.update_state(event)
+```
+- Strategy updates indicators, regime filters, position tracking
+- Regime state may change during this phase
+- **No trading decisions** are made yet
 
-**Inactive strategies** receive the `default_risk_per_trade` value, so if they activate mid-session, they have a reasonable default.
+### Phase 2: Apply Risk Budgets
+```python
+self._apply_risk_budgets()
+```
+- Check which strategies have active regimes (`is_regime_active()`)
+- Apply policy to allocate risk across active instruments
+- Call `set_risk_per_trade()` on each strategy
+- **Inactive strategies** receive `default_risk_per_trade`
+
+### Phase 3: Evaluate Signals
+```python
+await strategy.evaluate_signals()
+```
+- Strategy evaluates entry/exit conditions
+- **Trading decisions** use the correct, current risk allocation
+- Orders are placed based on freshly allocated risk
+
+**Why this matters**: When a regime activates, the risk allocation updates **before** the strategy makes trading decisions. This ensures the first trade uses the correct allocation, not a stale value.
 
 ## Complete Example
 
@@ -139,6 +175,7 @@ class SimpleStrategy:
         self._risk_per_trade = 10.0
         self._regime_active = False
         self._price_history = []
+        self._current_candle = None
 
     def set_risk_per_trade(self, value: float) -> None:
         self._risk_per_trade = value
@@ -146,14 +183,23 @@ class SimpleStrategy:
     def is_regime_active(self) -> bool:
         return self._regime_active
 
-    async def on_candle_close(self, event: CandleCloseEvent) -> None:
-        candle = event.candle
-        self._price_history.append(candle.close)
+    async def update_state(self, event: CandleCloseEvent) -> None:
+        """Phase 1: Update indicators and regime state."""
+        self._current_candle = event.candle
+        self._price_history.append(event.candle.close)
 
         # Simple volatility regime: activate if price moves > threshold
         if len(self._price_history) >= 2:
-            move = abs(candle.close - self._price_history[-2])
+            move = abs(event.candle.close - self._price_history[-2])
             self._regime_active = move > self.threshold
+
+    async def evaluate_signals(self) -> None:
+        """Phase 2: Make trading decisions with correct risk allocation."""
+        if not self._regime_active or not self._current_candle:
+            return
+
+        # Entry logic using self._risk_per_trade (which is now current)
+        # ... trading decisions here ...
 
 # Create strategies
 strategies = {

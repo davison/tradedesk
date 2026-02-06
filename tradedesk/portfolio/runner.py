@@ -54,18 +54,27 @@ class PortfolioRunner:
 
     async def on_candle_close(self, event: CandleCloseEvent) -> None:
         """
-        Process a candle close event.
+        Process a candle close event using two-phase lifecycle.
 
-        Applies risk budgets before forwarding to the relevant strategy.
+        Phase 1: Update state (indicators, regime, position tracking)
+        Phase 2: Apply risk budgets based on updated regime state
+        Phase 3: Evaluate signals and execute trades with correct allocations
 
         Args:
             event: Candle close event with instrument, period, and candle data
         """
-        # Apply risk budgets based on portfolio state *before* processing this bar.
-        self._apply_risk_budgets()
-
         strat = self.strategies.get(event.instrument)
         if strat is None:
             return
 
-        await strat.on_candle_close(event)
+        # Phase 1: Update strategy state (indicators, regime, etc.)
+        # Regime state may change during this phase
+        await strat.update_state(event)
+
+        # Phase 2: Apply risk budgets based on current (updated) regime state
+        # This ensures allocations reflect any regime changes from phase 1
+        self._apply_risk_budgets()
+
+        # Phase 3: Evaluate signals and execute trades
+        # Strategies now have correct risk allocations for entries/exits
+        await strat.evaluate_signals()

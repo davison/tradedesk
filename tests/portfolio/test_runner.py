@@ -14,7 +14,8 @@ class FakeStrategy:
         self.instrument = Instrument(instrument)
         self._active = active
         self._rpt = None
-        self.seen = 0
+        self.update_state_calls = 0
+        self.evaluate_signals_calls = 0
 
     def is_regime_active(self) -> bool:
         return self._active
@@ -22,8 +23,11 @@ class FakeStrategy:
     def set_risk_per_trade(self, value: float) -> None:
         self._rpt = float(value)
 
-    async def on_candle_close(self, event: CandleCloseEvent) -> None:
-        self.seen += 1
+    async def update_state(self, event: CandleCloseEvent) -> None:
+        self.update_state_calls += 1
+
+    async def evaluate_signals(self) -> None:
+        self.evaluate_signals_calls += 1
 
 
 @pytest.mark.asyncio
@@ -54,5 +58,8 @@ async def test_runner_splits_risk_across_active_strategies():
     assert s2._rpt == 5.0
     # Inactive strategy should get default
     assert s3._rpt == 10.0
-    # Only the strategy for the candle's instrument should see the event
-    assert s1.seen == 1
+    # Only the strategy for the candle's instrument should process the event
+    assert s1.update_state_calls == 1
+    assert s1.evaluate_signals_calls == 1
+    assert s2.update_state_calls == 0
+    assert s2.evaluate_signals_calls == 0

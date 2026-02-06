@@ -66,6 +66,10 @@ class PortfolioStrategy(Protocol):
     A class implementing this protocol can be managed as part of a larger
     portfolio, receiving risk budget updates and candle events from an
     orchestrator.
+
+    Strategies should implement the two-phase lifecycle:
+    1. update_state() - Update indicators, regime state, position tracking
+    2. evaluate_signals() - Make entry/exit decisions with correct risk allocations
     """
 
     instrument: Instrument
@@ -73,8 +77,8 @@ class PortfolioStrategy(Protocol):
     def set_risk_per_trade(self, value: float) -> None:
         """Set the strategy's per-trade risk budget.
 
-        This is called by the `PortfolioRunner` before each candle event,
-        allowing the portfolio's risk policy to dynamically allocate risk.
+        This is called by the `PortfolioRunner` after state updates and before
+        signal evaluation, ensuring trading decisions use current risk allocations.
 
         Args:
             value: The monetary amount to risk on the next trade.
@@ -92,12 +96,26 @@ class PortfolioStrategy(Protocol):
         """
         ...
 
-    async def on_candle_close(self, event: CandleCloseEvent) -> None:
-        """Process a candle close event for the strategy's instrument.
+    async def update_state(self, event: CandleCloseEvent) -> None:
+        """Update indicators and regime state based on new candle.
 
-        This is the primary entry point for the strategy's trading logic.
+        This phase happens before risk allocation. Strategies should update
+        their internal state (indicators, regime filters, position tracking)
+        but NOT make entry/exit decisions.
 
         Args:
             event: The `CandleCloseEvent` containing the completed candle.
+        """
+        ...
+
+    async def evaluate_signals(self) -> None:
+        """Evaluate entry/exit signals and execute trades.
+
+        This phase happens after risk allocation. Strategies should check
+        their current state and make trading decisions using the allocated
+        risk budget (set via set_risk_per_trade).
+
+        At this point, all indicators and regime state reflect the latest
+        candle, and risk_per_trade reflects the current portfolio allocation.
         """
         ...
