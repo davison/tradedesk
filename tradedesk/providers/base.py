@@ -7,6 +7,7 @@ we encapsulate streaming and implement backtesting.
 """
 
 import abc
+from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING
 from tradedesk.marketdata import Candle
 
@@ -15,10 +16,37 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+    "AccountBalance",
+    "BrokerPosition",
     "Client",
     "DealNotAcceptedException",
     "Streamer",
 ]
+
+
+@dataclass(frozen=True)
+class BrokerPosition:
+    """Provider-neutral representation of a position held at the broker."""
+
+    instrument: str
+    direction: str  # "BUY" or "SELL" (broker-native)
+    size: float
+    entry_price: float
+    deal_id: str
+    currency: str = ""
+    created_at: str = ""
+
+
+@dataclass(frozen=True)
+class AccountBalance:
+    """Provider-neutral snapshot of account funds."""
+
+    balance: float  # total account value
+    deposit: float  # margin used
+    available: float  # funds available for new positions
+    profit_loss: float  # unrealised P&L
+    currency: str = ""
+
 
 class DealNotAcceptedException(Exception):
     """Raised when a deal is not accepted after placing a market order."""
@@ -138,6 +166,26 @@ class Client(abc.ABC):
 
         Raises:
             DealNotAcceptedException: If the order was rejected by the broker.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def get_positions(self) -> list[BrokerPosition]:
+        """Fetch all open positions from the broker.
+
+        Returns:
+            A list of ``BrokerPosition`` objects representing every open
+            position on the account.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def get_account_balance(self) -> AccountBalance:
+        """Fetch current account balance and margin summary.
+
+        Returns:
+            An ``AccountBalance`` snapshot with balance, margin usage,
+            available funds, and unrealised P&L.
         """
         raise NotImplementedError
 

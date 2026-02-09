@@ -5,7 +5,7 @@ import csv
 from pathlib import Path
 
 from tradedesk.marketdata import Candle
-from tradedesk.providers.base import Client
+from tradedesk.providers.base import AccountBalance, BrokerPosition, Client
 from tradedesk.marketdata import MarketData
 from tradedesk.providers.backtest.streamer import (
     BacktestStreamer,
@@ -424,4 +424,29 @@ class BacktestClient(Client):
     ) -> dict[str, Any]:
         return await self.place_market_order(
             instrument, direction, size, currency=currency, force_open=force_open
+        )
+
+    async def get_positions(self) -> list["BrokerPosition"]:
+        """Return current virtual positions as BrokerPosition objects."""
+
+        return [
+            BrokerPosition(
+                instrument=instrument,
+                direction="BUY" if pos.direction == Direction.LONG else "SELL",
+                size=pos.size,
+                entry_price=pos.entry_price,
+                deal_id=f"BACKTEST-{instrument}",
+            )
+            for instrument, pos in self.positions.items()
+        ]
+
+    async def get_account_balance(self) -> "AccountBalance":
+        """Return synthetic account balance."""
+
+        total = 10000.0 + self.realised_pnl
+        return AccountBalance(
+            balance=total,
+            deposit=0.0,
+            available=total,
+            profit_loss=self.realised_pnl,
         )
