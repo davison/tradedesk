@@ -11,6 +11,7 @@ It provides:
 
 * A consistent strategy lifecycle
 * Explicit separation between market data, strategy logic, and execution
+* Minimal and flexible portfolio management types
 * Deterministic [backtesting](./docs/backtesting_guide.md) with identical strategy code
 * Live and DEMO execution via provider-specific clients
 
@@ -20,7 +21,6 @@ It is designed for research, validation, and controlled deployment of trading st
 
 `tradedesk` is intentionally *not*:
 
-* A portfolio management system
 * A signal marketplace
 * A turnkey trading bot
 * A performance-optimised HFT engine
