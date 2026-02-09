@@ -1,5 +1,7 @@
 """Position tracking utilities."""
 
+from typing import Any
+
 from tradedesk.types import Direction
 from tradedesk.marketdata import Candle
 
@@ -93,3 +95,26 @@ class PositionTracker:
             return close_price - self.entry_price
         else:
             return self.entry_price - close_price
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize current position state to a plain dict (JSON-safe)."""
+        return {
+            "direction": self.direction.value if self.direction else None,
+            "size": self.size,
+            "entry_price": self.entry_price,
+            "bars_held": self.bars_held,
+            "mfe_points": self.mfe_points,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "PositionTracker":
+        """Restore a PositionTracker from a dict produced by ``to_dict()``."""
+        tracker = cls()
+        direction_val = data.get("direction")
+        if direction_val is not None:
+            tracker.direction = Direction(direction_val)
+            tracker.size = data.get("size")
+            tracker.entry_price = data.get("entry_price")
+            tracker.bars_held = data.get("bars_held", 0)
+            tracker.mfe_points = data.get("mfe_points", 0.0)
+        return tracker

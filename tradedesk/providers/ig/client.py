@@ -7,7 +7,7 @@ import aiohttp
 from decimal import Decimal, ROUND_DOWN
 from tradedesk.marketdata import Candle
 from tradedesk.providers import Client
-from tradedesk.providers.base import DealNotAcceptedException
+from tradedesk.providers.base import AccountBalance, BrokerPosition, DealNotAcceptedException
 from tradedesk.providers.ig.settings import settings
 
 log = logging.getLogger(__name__)
@@ -498,6 +498,60 @@ class IGClient(Client):
     async def get_price_ticks(self, epic: str) -> dict[str, Any]:
         """Convenient shortcut to the "prices" endpoint."""
         return await self._request("GET", f"/prices/{epic}")
+
+    async def get_positions(self) -> list["BrokerPosition"]:
+        """Fetch all open positions from IG REST API.
+
+        Calls ``GET /positions`` (API v2) and maps the response into
+        provider-neutral :class:`BrokerPosition` objects.
+        """
+
+        payload = await self._request("GET", "/positions", api_version="2")
+        positions = payload.get("positions") or []
+
+        result: list[BrokerPosition] = []
+        for p in positions:
+            market = p.get("market", {})
+            position = p.get("position", {})
+            result.append(
+                BrokerPosition(
+                    instrument=market.get("epic", ""),
+                    direction=position.get("direction", ""),
+                    size=float(position.get("size", 0)),
+                    entry_price=float(position.get("level", 0)),
+                    deal_id=position.get("dealId", ""),
+                    currency=position.get("currency", ""),
+                    created_at=position.get("createdDateUTC", ""),
+                )
+            )
+        return result
+
+    async def get_account_balance(self) -> "AccountBalance":
+        """Fetch current account balance from IG REST API.
+
+        Reuses the existing ``_get_accounts()`` call and returns the
+        balance for the currently authenticated account.
+        """
+
+        payload = await self._get_accounts()
+        accounts = payload.get("accounts") or []
+        current = next(
+            (a for a in accounts if a.get("accountId") == self.account_id),
+            None,
+        )
+        if current is None:
+            raise RuntimeError(
+                f"Account {self.account_id} not found in /accounts response"
+            )
+
+        bal = current.get("balance", {})
+        return AccountBalance(
+            balance=float(bal.get("balance", 0)),
+            deposit=float(bal.get("deposit", 0)),
+            available=float(bal.get("available", 0)),
+            profit_loss=float(bal.get("profitLoss", 0)),
+            currency=current.get("currency", ""),
+        )
 
     async def place_market_order(
         self,
