@@ -206,7 +206,7 @@ def compute_metrics(*, equity_rows: list[dict[str, Any]], trade_rows: list[dict[
         if t.entry_ts and t.exit_ts:
             dt = _parse_ts(t.exit_ts) - _parse_ts(t.entry_ts)
             hold_mins.append(dt.total_seconds() / 60.0)
-    avg_hold = (sum(hold_mins) / len(hold_mins)) if hold_mins else None
+    avg_hold = (sum(hold_mins) / len(hold_mins)) if hold_mins else 0.0
 
     scale = float(reporting_scale)
 
