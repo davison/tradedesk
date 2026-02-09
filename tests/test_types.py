@@ -1,6 +1,5 @@
 """Tests for broker-agnostic trading types."""
 
-import pytest
 
 from tradedesk.types import Direction
 
