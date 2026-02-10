@@ -322,7 +322,13 @@ class IGClient(Client):
                     try:
                         err_body = await resp.json()
                     except Exception:
-                        err_body = await resp.text()
+                        raw = await resp.text()
+                        if "<html" in raw.lower():
+                            import re
+                            err_body = re.sub(r"<[^>]+>", " ", raw)
+                            err_body = " ".join(err_body.split())[:200]
+                        else:
+                            err_body = raw
                     raise RuntimeError(
                         f"IG request failed: HTTP {resp.status}: {err_body}"
                     )
