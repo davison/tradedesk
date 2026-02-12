@@ -1,5 +1,6 @@
 """Portfolio management for multi-instrument trading."""
 
+from .config import BacktestPortfolioConfig, LivePortfolioConfig, PortfolioConfig
 from .risk import EqualSplitRiskPolicy, RiskAllocationPolicy, atr_normalised_size
 from .runner import PortfolioRunner
 from .types import (
@@ -10,9 +11,12 @@ from .types import (
 )
 
 __all__ = [
-    "Instrument",
+    "BacktestPortfolioConfig",
     "CandleCloseEvent",
     "EqualSplitRiskPolicy",
+    "Instrument",
+    "LivePortfolioConfig",
+    "PortfolioConfig",
     "PortfolioRunner",
     "PortfolioStrategy",
     "RiskAllocationPolicy",
