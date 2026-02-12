@@ -4,9 +4,9 @@ from collections import deque
 import logging
 
 from tradedesk import BaseStrategy, run_strategies
-from tradedesk.marketdata import MarketData
+from tradedesk.marketdata.instrument import MarketData
 from tradedesk.providers.base import Client
-from tradedesk.subscriptions import MarketSubscription
+from tradedesk.marketdata.subscriptions import MarketSubscription
 from tradedesk.providers.ig.client import IGClient
 
 log = logging.getLogger(__name__)

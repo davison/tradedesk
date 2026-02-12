@@ -1,6 +1,6 @@
 """Tests for portfolio risk allocation policies."""
 
-from tradedesk.portfolio.policy import EqualSplitRiskPolicy
+from tradedesk.portfolio.risk import EqualSplitRiskPolicy
 from tradedesk.portfolio.types import Instrument
 
 
