@@ -20,9 +20,9 @@ import json
 import logging
 
 from tradedesk import BaseStrategy, run_strategies
-from tradedesk.marketdata import MarketData
+from tradedesk.marketdata.instrument import MarketData
 from tradedesk.providers.ig.client import IGClient
-from tradedesk.subscriptions import MarketSubscription
+from tradedesk.marketdata.subscriptions import MarketSubscription
 
 log = logging.getLogger(__name__)
 

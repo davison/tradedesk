@@ -5,9 +5,9 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
-from tradedesk.marketdata import Candle
-from tradedesk.strategy import BaseStrategy
-from tradedesk.subscriptions import ChartSubscription
+from tradedesk.marketdata.candle import Candle
+from tradedesk.strategy.base import BaseStrategy
+from tradedesk.marketdata.subscriptions import ChartSubscription
 
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -70,8 +70,8 @@ def mock_aiohttp_session(mock_http_response):
 @pytest.fixture
 def mock_lightstreamer():
     """Mock Lightstreamer client and subscription."""
-    with patch('tradedesk.providers.ig.streamer.LightstreamerClient') as mock_ls_client_class, \
-         patch('tradedesk.providers.ig.streamer.Subscription') as mock_subscription_class:
+    with patch('tradedesk.execution.ig.price_streamer.LightstreamerClient') as mock_ls_client_class, \
+         patch('tradedesk.execution.ig.price_streamer.Subscription') as mock_subscription_class:
         
         # Create mock LightstreamerClient instance
         mock_ls_client = MagicMock()

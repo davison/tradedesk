@@ -3,10 +3,7 @@
 from dataclasses import dataclass
 
 from tradedesk.portfolio.types import CandleCloseEvent, Instrument, PortfolioStrategy
-from tradedesk.portfolio.policy import RiskAllocationPolicy
-
-
-__all__ = ["PortfolioRunner"]
+from tradedesk.portfolio.risk import RiskAllocationPolicy
 
 
 @dataclass

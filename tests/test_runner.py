@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from tradedesk.runner import run_strategies, configure_logging, _run_strategies_async
-from tradedesk.strategy import BaseStrategy
+from tradedesk.strategy.base import BaseStrategy
 
 class TestRunner:
     """Test the strategy runner."""

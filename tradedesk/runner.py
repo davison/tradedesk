@@ -8,17 +8,11 @@ import sys
 from collections.abc import Callable
 from typing import Any
 
-from tradedesk.providers import Client
+from tradedesk.execution import Client
 from tradedesk.strategy import BaseStrategy
 
 
 log = logging.getLogger(__name__)
-
-
-__all__ = [
-    "configure_logging",
-    "run_strategies",
-]
 
 
 def configure_logging(level: str = "INFO", force: bool = False) -> None:
