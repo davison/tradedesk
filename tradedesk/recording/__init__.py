@@ -1,3 +1,6 @@
+from .client import RecordingClient
+from .journal import JournalEntry, PositionJournal
+from .ledger import TradeLedger
 from .metrics import (
     Metrics,
     RoundTrip,
@@ -6,20 +9,21 @@ from .metrics import (
     max_drawdown,
     round_trips_from_fills,
 )
-from .types import EquityRecord, RecordingMode, TradeRecord
 from .opportunity import InstrumentOpportunity, OpportunityRecorder
-from .journal import JournalEntry, PositionJournal
+from .types import EquityRecord, RecordingMode, TradeRecord
 
 __all__ = [
-    "InstrumentOpportunity",
     "EquityRecord",
+    "InstrumentOpportunity",
     "JournalEntry",
     "Metrics",
     "OpportunityRecorder",
     "PositionJournal",
+    "RecordingClient",
     "RecordingMode",
     "RoundTrip",
     "TradeRecord",
+    "TradeLedger",
     "compute_metrics",
     "equity_rows_from_round_trips",
     "max_drawdown",
