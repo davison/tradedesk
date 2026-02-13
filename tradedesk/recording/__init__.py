@@ -1,6 +1,6 @@
 from .client import RecordingClient
 from .journal import JournalEntry, PositionJournal
-from .ledger import TradeLedger
+from .ledger import TradeLedger, trade_rows_from_trades
 from .metrics import (
     Metrics,
     RoundTrip,
@@ -28,4 +28,5 @@ __all__ = [
     "equity_rows_from_round_trips",
     "max_drawdown",
     "round_trips_from_fills",
+    "trade_rows_from_trades",
 ]

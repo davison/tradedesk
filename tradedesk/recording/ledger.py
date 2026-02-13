@@ -9,6 +9,23 @@ from .types import EquityRecord, RecordingMode, TradeRecord
 from tradedesk.time_utils import parse_timestamp
 
 
+def trade_rows_from_trades(trades) -> list[dict]:
+    """Convert TradeRecord-like objects into the dict rows expected by
+    ``round_trips_from_fills`` and related helpers.
+    """
+    return [
+        {
+            "timestamp": t.timestamp,
+            "instrument": t.instrument,
+            "direction": t.direction,
+            "size": str(t.size),
+            "price": str(t.price),
+            "reason": t.reason,
+        }
+        for t in trades
+    ]
+
+
 @dataclass
 class TradeLedger:
     trades: list[TradeRecord] = field(default_factory=list)
