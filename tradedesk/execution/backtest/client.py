@@ -18,7 +18,7 @@ from tradedesk.marketdata.instrument import MarketData
 @dataclass
 class Trade:
     instrument: str
-    direction: str  # "BUY" or "SELL"
+    direction: Direction  # "BUY" or "SELL"
     size: float
     price: float
     timestamp: str | None = None
@@ -345,15 +345,13 @@ class BacktestClient(Client):
         if size <= 0:
             raise ValueError("size must be > 0")
 
-        direction = direction.upper()
-        if direction not in {"BUY", "SELL"}:
-            raise ValueError("direction must be BUY or SELL")
-
+        _direction = Direction.from_order_side(direction)
         price = self._get_mark_price(instrument)
+
         self.trades.append(
             Trade(
                 instrument=instrument,
-                direction=direction,
+                direction=_direction,
                 size=float(size),
                 price=price,
                 timestamp=self._current_timestamp,
@@ -368,15 +366,12 @@ class BacktestClient(Client):
         if pos is None:
             self.positions[instrument] = Position(
                 instrument=instrument,
-                direction=Direction.LONG if direction == "BUY" else Direction.SHORT,
+                direction=_direction,
                 size=float(size),
                 entry_price=price,
             )
         else:
-            same = (pos.direction == Direction.LONG and direction == "BUY") or (
-                pos.direction == Direction.SHORT and direction == "SELL"
-            )
-            if same:
+            if pos.direction == _direction:
                 # Increase position: weighted avg entry
                 new_size = pos.size + float(size)
                 pos.entry_price = (
@@ -399,7 +394,7 @@ class BacktestClient(Client):
                 if residual > 0:
                     self.positions[instrument] = Position(
                         instrument=instrument,
-                        direction=Direction.LONG if direction == "BUY" else Direction.SHORT,
+                        direction=_direction,
                         size=residual,
                         entry_price=price,
                     )
@@ -408,7 +403,7 @@ class BacktestClient(Client):
             "dealReference": f"BACKTEST-{next(self._deal_counter)}",
             "status": "FILLED",
             "instrument": instrument,
-            "direction": direction,
+            "direction": _direction,
             "size": float(size),
             "price": price,
             "currency": currency,
