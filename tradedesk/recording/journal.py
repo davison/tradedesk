@@ -65,7 +65,13 @@ class PositionJournal:
 
         try:
             data = json.loads(self._path.read_text())
-            return [JournalEntry(**e) for e in data.get("positions", [])]
+            entries = []
+            for e in data.get("positions", []):
+                # Backward compat: rename legacy "epic" key to "instrument"
+                if "epic" in e and "instrument" not in e:
+                    e["instrument"] = e.pop("epic")
+                entries.append(JournalEntry(**e))
+            return entries
         except Exception:
             log.exception("Failed to load position journal from %s", self._path)
             return None
