@@ -8,6 +8,8 @@ from .reconciliation import (
     ReconciliationResult,
     reconcile,
 )
+from .fixed_allocation import FixedAllocationRiskPolicy
+from .performance_weighted import PerformanceWeightedRiskPolicy
 from .risk import EqualSplitRiskPolicy, RiskAllocationPolicy, atr_normalised_size
 from .runner import PortfolioRunner
 from .types import (
@@ -22,9 +24,11 @@ __all__ = [
     "CandleCloseEvent",
     "DiscrepancyType",
     "EqualSplitRiskPolicy",
+    "FixedAllocationRiskPolicy",
     "Instrument",
     "InstrumentWindow",
     "LivePortfolioConfig",
+    "PerformanceWeightedRiskPolicy",
     "PortfolioConfig",
     "PortfolioRunner",
     "PortfolioStrategy",
