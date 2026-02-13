@@ -63,9 +63,9 @@ def test_backtest_replays_candles_and_executes_virtual_trades():
 
     # Trades recorded
     assert len(client.trades) == 2
-    assert client.trades[0].direction == "BUY"
+    assert client.trades[0].direction == Direction.LONG
     assert client.trades[0].price == 10.0
-    assert client.trades[1].direction == "SELL"
+    assert client.trades[1].direction == Direction.SHORT
     assert client.trades[1].price == 12.0
 
     # Position netted out, realised PnL computed: (12 - 10) * 1 = 2
@@ -83,7 +83,7 @@ async def test_backtest_rejects_direction_enum_without_conversion():
     client._set_mark_price("TEST", 100.0)
 
     # Passing Direction enum directly should raise ValueError
-    with pytest.raises(ValueError, match="direction must be BUY or SELL"):
+    with pytest.raises(ValueError, match="Invalid order side"):
         await client.place_market_order(
             instrument="TEST",
             direction=Direction.LONG,  # This is wrong!
@@ -110,7 +110,7 @@ async def test_backtest_accepts_direction_with_to_order_side():
     )
 
     assert result["status"] == "FILLED"
-    assert result["direction"] == "BUY"
+    assert result["direction"] == Direction.LONG
     assert len(client.positions) == 1
     assert client.positions["TEST"].direction == Direction.LONG
 
@@ -125,6 +125,6 @@ async def test_backtest_accepts_direction_with_to_order_side():
     )
 
     assert result["status"] == "FILLED"
-    assert result["direction"] == "SELL"
+    assert result["direction"] == Direction.SHORT
     assert len(client.positions) == 0  # Position closed
     assert client.realised_pnl == 10.0  # (110 - 100) * 1.0

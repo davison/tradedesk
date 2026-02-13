@@ -63,6 +63,18 @@ class Direction(str, Enum):
             "BUY" for LONG positions, "SELL" for SHORT positions
         """
         return "BUY" if self is Direction.LONG else "SELL"
+    
+    @classmethod
+    def from_order_side(cls, side: str) -> "Direction":
+        """
+        Convert order side string (BUY/SELL) to direction.
+        """
+        if side.upper() == "BUY":
+            return Direction.LONG
+        elif side.upper() == "SELL":
+            return Direction.SHORT
+        else:
+            raise ValueError(f"Invalid order side {side}: must be BUY or SELL")
 
 
 

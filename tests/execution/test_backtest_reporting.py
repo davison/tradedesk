@@ -42,10 +42,10 @@ async def test_compute_equity_raises_on_unknown_position_direction():
     client._set_mark_price(instrument, 100.0)
     await client.place_market_order(instrument, "BUY", 1.0)
 
-    # Force an invalid direction (defensive test)
-    client.positions[instrument].direction = "SIDEWAYS"
+    # Force an invalid direction (defensive test) - bypass type system
+    object.__setattr__(client.positions[instrument], "direction", "SIDEWAYS")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown position direction"):
         compute_equity(client)
         
 @pytest.mark.asyncio
