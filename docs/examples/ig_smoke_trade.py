@@ -3,7 +3,7 @@ IG DEMO smoke test: open then net-close a position via opposite market order.
 
 Usage:
   IG_API_KEY=... IG_USERNAME=... IG_PASSWORD=... IG_ENVIRONMENT=DEMO \
-    python ../tradedesk/docs/examples/ig_smoke_trade.py --epic <EPIC> --size 1
+    python ./ig_smoke_trade.py --epic <EPIC> --size 1
 
 Notes:
 - Assumes netting semantics (force_open=False). “Close” is achieved by placing the opposite
@@ -20,8 +20,8 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from tradedesk.providers.ig.client import IGClient
-from tradedesk.providers.ig.settings import settings
+from tradedesk.execution.ig import IGClient
+from tradedesk.execution.ig.settings import settings
 
 load_dotenv()  # reads .env from CWD by default
 log = logging.getLogger(__name__)

@@ -1,13 +1,20 @@
 # examples/momentum.py
-"""Simple momentum strategy example."""
-from collections import deque
+"""
+Simple momentum strategy example.
+
+Usage:
+  IG_API_KEY=... IG_USERNAME=... IG_PASSWORD=... IG_ENVIRONMENT=DEMO \
+    python ./momentum_strategy.py
+    
+"""
 import logging
+from collections import deque
 
 from tradedesk import BaseStrategy, run_strategies
+from tradedesk.execution import Client
+from tradedesk.execution.ig import IGClient
 from tradedesk.marketdata.instrument import MarketData
-from tradedesk.providers.base import Client
 from tradedesk.marketdata.subscriptions import MarketSubscription
-from tradedesk.providers.ig.client import IGClient
 
 log = logging.getLogger(__name__)
 

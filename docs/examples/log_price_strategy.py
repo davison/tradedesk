@@ -9,7 +9,8 @@ This demonstrates:
 - How to run the strategy
 
 Usage:
-    python examples/log_price_strategy.py
+  IG_API_KEY=... IG_USERNAME=... IG_PASSWORD=... IG_ENVIRONMENT=DEMO \
+    python ./log_price_strategy.py
 
 Requirements:
     - .env file with IG credentials in the project root
@@ -19,10 +20,11 @@ Requirements:
 import json
 import logging
 
-from tradedesk import BaseStrategy, run_strategies
+from tradedesk import run_strategies
+from tradedesk.execution.ig.client import IGClient
 from tradedesk.marketdata.instrument import MarketData
-from tradedesk.providers.ig.client import IGClient
 from tradedesk.marketdata.subscriptions import MarketSubscription
+from tradedesk.strategy import BaseStrategy
 
 log = logging.getLogger(__name__)
 
