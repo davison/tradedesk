@@ -82,11 +82,9 @@ Backward compatibility is **not required** unless explicitly stated.
 * Code should meet `ruff check` and `mypy --strict` requirements
 * Create commit messages for git following "Conventional Commits" and the current style of the project's git log
 
-When proposing code:
+When running code or commands:
 
-* Provide complete snippets
-* No diffs
-* Assume direct copy into an IDE
+* Use the `.venv` directory in the root of the relevant project
 
 ---
 
