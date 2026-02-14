@@ -374,20 +374,35 @@ class BaseStrategy(abc.ABC):
 
     async def _handle_event(self, event: MarketData | CandleClosedEvent) -> None:
         """
-        Internal event dispatcher.
+        Internal event dispatcher - bridges to event bus and callbacks.
 
-        Streamer implementations should call this method only. It updates common
-        bookkeeping (e.g. last_update) and dispatches to the existing strategy
-        callbacks to preserve the current public strategy API.
+        Streamer implementations should call this method only. It:
+        1. Dispatches events to the global event bus (for event-driven handlers)
+        2. Calls existing strategy callbacks (for backwards compatibility)
+        3. Updates common bookkeeping (e.g. last_update)
         """
-        self.last_update = datetime.now(timezone.utc)
+        from tradedesk.events import get_dispatcher
+        from tradedesk.marketdata.events import MarketDataReceivedEvent
 
+        # Get the global event dispatcher
+        dispatcher = get_dispatcher()
+
+        # Dispatch to event bus first, then call callbacks
         if isinstance(event, MarketData):
+            # Wrap MarketData in event and dispatch to event bus
+            await dispatcher.publish(MarketDataReceivedEvent(data=event))
+            # Call callback for backwards compatibility
             await self.on_price_update(event)
 
         elif isinstance(event, CandleClosedEvent):
+            # Dispatch event to event bus
+            await dispatcher.publish(event)
+            # Call callback for backwards compatibility
             await self.on_candle_close(event)
 
         else:
             # Defensive: should never happen unless someone extends events incorrectly.
             raise TypeError(f"Unsupported event type: {type(event)!r}")
+
+        # Update watchdog
+        self.last_update = datetime.now(timezone.utc)
