@@ -12,8 +12,8 @@ class TradeRecord:
     timestamp: str
     instrument: str
     direction: str  # "BUY" or "SELL"
-    size: float     # stake (e.g. £/point)
-    price: float    # executed price (IG points)
+    size: float  # stake (e.g. £/point)
+    price: float  # executed price (IG points)
     reason: str = ""
 
 

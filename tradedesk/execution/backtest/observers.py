@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 # Recording
 # ---------------------------------------------------------------------------
 
+
 class BacktestRecorder:
     """Records opportunity snapshots and equity samples during a backtest."""
 
@@ -60,6 +61,7 @@ class BacktestRecorder:
 # Progress logging
 # ---------------------------------------------------------------------------
 
+
 class ProgressLogger:
     """Logs a message at the start of each new ISO week during a backtest."""
 
@@ -72,7 +74,9 @@ class ProgressLogger:
         if self._last_logged_week != year_week:
             log.info(
                 "Backtest progress: Week %d/%d (%s)",
-                year_week[1], year_week[0], dt.strftime("%Y-%m-%d"),
+                year_week[1],
+                year_week[0],
+                dt.strftime("%Y-%m-%d"),
             )
             self._last_logged_week = year_week
 
@@ -80,6 +84,7 @@ class ProgressLogger:
 # ---------------------------------------------------------------------------
 # Policy tracker synchronisation
 # ---------------------------------------------------------------------------
+
 
 class TrackerSync:
     """Incrementally syncs completed round-trips to the policy tracker."""
@@ -103,7 +108,7 @@ class TrackerSync:
         all_rows = trade_rows_from_trades(self._ledger.trades)
         all_rts = round_trips_from_fills(all_rows)
 
-        new_rts = all_rts[len(self._all_round_trips):]
+        new_rts = all_rts[len(self._all_round_trips) :]
         self._all_round_trips = all_rts
         self._last_extracted_trade_count = current_count
 
@@ -114,13 +119,19 @@ class TrackerSync:
         for rt in new_rts:
             entry_dt = parse_timestamp(rt.entry_ts)
             exit_dt = parse_timestamp(rt.exit_ts)
-            trades.append({
-                "instrument": rt.instrument,
-                "pnl": float(rt.pnl),
-                "entry_ts": rt.entry_ts,
-                "exit_ts": rt.exit_ts,
-                "hold_minutes": (exit_dt - entry_dt).total_seconds() / 60.0,
-            })
+            trades.append(
+                {
+                    "instrument": rt.instrument,
+                    "pnl": float(rt.pnl),
+                    "entry_ts": rt.entry_ts,
+                    "exit_ts": rt.exit_ts,
+                    "hold_minutes": (exit_dt - entry_dt).total_seconds() / 60.0,
+                }
+            )
 
         tracker.update_from_trades(trades)
-        log.debug("Updated tracker with %d new round trips (total: %d)", len(trades), len(all_rts))
+        log.debug(
+            "Updated tracker with %d new round trips (total: %d)",
+            len(trades),
+            len(all_rts),
+        )

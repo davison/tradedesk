@@ -90,9 +90,20 @@ class TradeLedger:
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w", newline="") as f:
             w = csv.writer(f)
-            w.writerow(["timestamp", "instrument", "direction", "size", "price", "reason"])
+            w.writerow(
+                ["timestamp", "instrument", "direction", "size", "price", "reason"]
+            )
             for t in self.trades:
-                w.writerow([t.timestamp, t.instrument, t.direction, round(t.size, 4), t.price, t.reason])
+                w.writerow(
+                    [
+                        t.timestamp,
+                        t.instrument,
+                        t.direction,
+                        round(t.size, 4),
+                        t.price,
+                        t.reason,
+                    ]
+                )
 
     def write_round_trips_csv(self, path: Path) -> None:
         """Write reconstructed round trips.
@@ -137,7 +148,9 @@ class TradeLedger:
 
             for t in trips:
                 try:
-                    hold = (parse_timestamp(t.exit_ts) - parse_timestamp(t.entry_ts)).total_seconds() / 60.0
+                    hold = (
+                        parse_timestamp(t.exit_ts) - parse_timestamp(t.entry_ts)
+                    ).total_seconds() / 60.0
                 except Exception:
                     hold = ""
 
@@ -189,10 +202,16 @@ class TradeLedger:
                 day = dt.date().isoformat()
                 by_date[day] = float(e.equity)
             except ValueError as ex:
-                raise ValueError(f"Failed to parse equity timestamp: {e.timestamp!r}") from ex
+                raise ValueError(
+                    f"Failed to parse equity timestamp: {e.timestamp!r}"
+                ) from ex
 
-        start_dt = parse_timestamp(self.equity[0].timestamp).astimezone(timezone.utc).date()
-        end_dt = parse_timestamp(self.equity[-1].timestamp).astimezone(timezone.utc).date()
+        start_dt = (
+            parse_timestamp(self.equity[0].timestamp).astimezone(timezone.utc).date()
+        )
+        end_dt = (
+            parse_timestamp(self.equity[-1].timestamp).astimezone(timezone.utc).date()
+        )
 
         with path.open("w", newline="") as f:
             w = csv.writer(f)
@@ -236,7 +255,10 @@ class TradeLedger:
 
         trips = round_trips_from_fills(trade_rows)
 
-        windows = [(parse_timestamp(t.entry_ts), parse_timestamp(t.exit_ts), t.instrument) for t in trips]
+        windows = [
+            (parse_timestamp(t.entry_ts), parse_timestamp(t.exit_ts), t.instrument)
+            for t in trips
+        ]
 
         with path.open("w", newline="") as f:
             w = csv.writer(f)
@@ -245,9 +267,7 @@ class TradeLedger:
             for e in self.equity:
                 ts = parse_timestamp(e.timestamp)
 
-                open_trips = [
-                    inst for start, end, inst in windows if start <= ts < end
-                ]
+                open_trips = [inst for start, end, inst in windows if start <= ts < end]
 
                 w.writerow(
                     [
@@ -281,7 +301,6 @@ class TradeLedger:
 
         avg_k_active = (sum(k_values) / len(k_values)) if k_values else 0.0
         max_k_active = max(k_values) if k_values else 0.0
-
 
         with path.open("w", newline="") as f:
             w = csv.writer(f)
@@ -317,15 +336,25 @@ class TradeLedger:
         path = self.out_dir / "trades.csv"
         with path.open("w", newline="") as f:
             w = csv.writer(f)
-            w.writerow(["timestamp", "instrument", "direction", "size", "price", "reason"])
+            w.writerow(
+                ["timestamp", "instrument", "direction", "size", "price", "reason"]
+            )
 
     def _append_trade_to_csv(self, record: TradeRecord) -> None:
         """Atomic append of single trade (broker mode only)"""
         path = self.out_dir / "trades.csv"
         with path.open("a", newline="") as f:
             w = csv.writer(f)
-            w.writerow([record.timestamp, record.instrument, record.direction,
-                       record.size, record.price, record.reason])
+            w.writerow(
+                [
+                    record.timestamp,
+                    record.instrument,
+                    record.direction,
+                    record.size,
+                    record.price,
+                    record.reason,
+                ]
+            )
 
     def _update_synthetic_equity(self, record: TradeRecord) -> None:
         """Update running balance based on realized P&L from trades"""
@@ -336,7 +365,7 @@ class TradeLedger:
             self._open_positions[position_key] = {
                 "direction": record.direction,
                 "price": record.price,
-                "size": record.size
+                "size": record.size,
             }
         else:
             # Check if closing or adding to position
@@ -363,8 +392,10 @@ class TradeLedger:
             else:
                 # Adding to position (average price)
                 total_size = existing["size"] + record.size
-                avg_price = ((existing["price"] * existing["size"]) +
-                            (record.price * record.size)) / total_size
+                avg_price = (
+                    (existing["price"] * existing["size"])
+                    + (record.price * record.size)
+                ) / total_size
                 existing["price"] = avg_price
                 existing["size"] = total_size
 

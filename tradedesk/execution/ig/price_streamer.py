@@ -228,7 +228,9 @@ class Lightstreamer(Streamer):
 
                         def onUnsubscription(self) -> None:
                             log.info(
-                                "Chart unsubscribed for %s %s", sub.instrument, sub.period
+                                "Chart unsubscribed for %s %s",
+                                sub.instrument,
+                                sub.period,
                             )
 
                     return ChartListener()

@@ -17,6 +17,7 @@ class PortfolioConfig:
     max_size: float
     base_period: str
 
+
 @dataclass(frozen=True)
 class BacktestPortfolioConfig(PortfolioConfig):
     input_dir: Path
@@ -42,11 +43,15 @@ class BacktestPortfolioConfig(PortfolioConfig):
         try:
             default_risk = float(risk["default_risk_per_trade"])
         except (KeyError, TypeError, ValueError) as exc:
-            raise ValueError("portfolio.risk.default_risk_per_trade is missing or not numeric") from exc
+            raise ValueError(
+                "portfolio.risk.default_risk_per_trade is missing or not numeric"
+            ) from exc
         try:
             budget = float(risk["portfolio_risk_budget"])
         except (KeyError, TypeError, ValueError) as exc:
-            raise ValueError("portfolio.risk.portfolio_risk_budget is missing or not numeric") from exc
+            raise ValueError(
+                "portfolio.risk.portfolio_risk_budget is missing or not numeric"
+            ) from exc
 
         return cls(
             instruments=instruments,
@@ -61,6 +66,7 @@ class BacktestPortfolioConfig(PortfolioConfig):
             max_size=float(sizing.get("max_size", 5.0)),
             base_period=base_period,
         )
+
 
 @dataclass(frozen=True)
 class LivePortfolioConfig(PortfolioConfig):

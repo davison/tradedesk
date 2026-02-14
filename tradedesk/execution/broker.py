@@ -36,6 +36,7 @@ class AccountBalance:
 
 class DealRejectedException(Exception):
     """Raised when a deal is not accepted after placing a market order."""
+
     pass
 
 
@@ -45,6 +46,7 @@ class Direction(str, Enum):
     Generic concept representing position bias (LONG or SHORT).
     Brokers are responsible for converting this to their API format.
     """
+
     LONG = "long"
     SHORT = "short"
 
@@ -63,7 +65,7 @@ class Direction(str, Enum):
             "BUY" for LONG positions, "SELL" for SHORT positions
         """
         return "BUY" if self is Direction.LONG else "SELL"
-    
+
     @classmethod
     def from_order_side(cls, side: str) -> "Direction":
         """
@@ -75,6 +77,3 @@ class Direction(str, Enum):
             return Direction.SHORT
         else:
             raise ValueError(f"Invalid order side {side}: must be BUY or SELL")
-
-
-

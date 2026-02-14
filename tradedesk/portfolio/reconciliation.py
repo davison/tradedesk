@@ -51,11 +51,15 @@ class ReconciliationResult:
 
     @property
     def orphan_broker_positions(self) -> list[ReconciliationEntry]:
-        return [e for e in self.entries if e.discrepancy == DiscrepancyType.ORPHAN_BROKER]
+        return [
+            e for e in self.entries if e.discrepancy == DiscrepancyType.ORPHAN_BROKER
+        ]
 
     @property
     def phantom_local_positions(self) -> list[ReconciliationEntry]:
-        return [e for e in self.entries if e.discrepancy == DiscrepancyType.PHANTOM_LOCAL]
+        return [
+            e for e in self.entries if e.discrepancy == DiscrepancyType.PHANTOM_LOCAL
+        ]
 
 
 def _direction_matches(journal_dir: str | None, broker_dir: str) -> bool:
@@ -107,52 +111,60 @@ def reconcile(
 
         if not journal_has_position and not broker_has_position:
             # Both flat
-            entries.append(ReconciliationEntry(
-                instrument=instrument,
-                discrepancy=DiscrepancyType.MATCHED,
-            ))
+            entries.append(
+                ReconciliationEntry(
+                    instrument=instrument,
+                    discrepancy=DiscrepancyType.MATCHED,
+                )
+            )
 
         elif journal_has_position and broker_has_position:
             assert journal_entry is not None and broker_pos is not None
             # Both have a position -- check details
             if not _direction_matches(journal_entry.direction, broker_pos.direction):
-                entries.append(ReconciliationEntry(
-                    instrument=instrument,
-                    discrepancy=DiscrepancyType.DIRECTION_MISMATCH,
-                    journal_direction=journal_entry.direction,
-                    journal_size=journal_entry.size,
-                    broker_direction=broker_pos.direction,
-                    broker_size=broker_pos.size,
-                    broker_deal_id=broker_pos.deal_id,
-                    message=(
-                        f"Direction mismatch: journal={journal_entry.direction} "
-                        f"broker={broker_pos.direction}"
-                    ),
-                ))
+                entries.append(
+                    ReconciliationEntry(
+                        instrument=instrument,
+                        discrepancy=DiscrepancyType.DIRECTION_MISMATCH,
+                        journal_direction=journal_entry.direction,
+                        journal_size=journal_entry.size,
+                        broker_direction=broker_pos.direction,
+                        broker_size=broker_pos.size,
+                        broker_deal_id=broker_pos.deal_id,
+                        message=(
+                            f"Direction mismatch: journal={journal_entry.direction} "
+                            f"broker={broker_pos.direction}"
+                        ),
+                    )
+                )
             elif abs((journal_entry.size or 0) - broker_pos.size) > 1e-6:
-                entries.append(ReconciliationEntry(
-                    instrument=instrument,
-                    discrepancy=DiscrepancyType.SIZE_MISMATCH,
-                    journal_direction=journal_entry.direction,
-                    journal_size=journal_entry.size,
-                    broker_direction=broker_pos.direction,
-                    broker_size=broker_pos.size,
-                    broker_deal_id=broker_pos.deal_id,
-                    message=(
-                        f"Size mismatch: journal={journal_entry.size} "
-                        f"broker={broker_pos.size}"
-                    ),
-                ))
+                entries.append(
+                    ReconciliationEntry(
+                        instrument=instrument,
+                        discrepancy=DiscrepancyType.SIZE_MISMATCH,
+                        journal_direction=journal_entry.direction,
+                        journal_size=journal_entry.size,
+                        broker_direction=broker_pos.direction,
+                        broker_size=broker_pos.size,
+                        broker_deal_id=broker_pos.deal_id,
+                        message=(
+                            f"Size mismatch: journal={journal_entry.size} "
+                            f"broker={broker_pos.size}"
+                        ),
+                    )
+                )
             else:
-                entries.append(ReconciliationEntry(
-                    instrument=instrument,
-                    discrepancy=DiscrepancyType.MATCHED,
-                    journal_direction=journal_entry.direction,
-                    journal_size=journal_entry.size,
-                    broker_direction=broker_pos.direction,
-                    broker_size=broker_pos.size,
-                    broker_deal_id=broker_pos.deal_id,
-                ))
+                entries.append(
+                    ReconciliationEntry(
+                        instrument=instrument,
+                        discrepancy=DiscrepancyType.MATCHED,
+                        journal_direction=journal_entry.direction,
+                        journal_size=journal_entry.size,
+                        broker_direction=broker_pos.direction,
+                        broker_size=broker_pos.size,
+                        broker_deal_id=broker_pos.deal_id,
+                    )
+                )
 
         elif not journal_has_position and broker_has_position:
             assert broker_pos is not None
@@ -160,39 +172,45 @@ def reconcile(
             # If journal entry exists with direction=None, we TRIED to close
             # but broker still has it => FAILED_EXIT.
             if journal_entry is not None and journal_entry.direction is None:
-                entries.append(ReconciliationEntry(
-                    instrument=instrument,
-                    discrepancy=DiscrepancyType.FAILED_EXIT,
-                    broker_direction=broker_pos.direction,
-                    broker_size=broker_pos.size,
-                    broker_deal_id=broker_pos.deal_id,
-                    message=(
-                        "EMERGENCY: Journal records flat but broker has position "
-                        "(failed exit?)"
-                    ),
-                ))
+                entries.append(
+                    ReconciliationEntry(
+                        instrument=instrument,
+                        discrepancy=DiscrepancyType.FAILED_EXIT,
+                        broker_direction=broker_pos.direction,
+                        broker_size=broker_pos.size,
+                        broker_deal_id=broker_pos.deal_id,
+                        message=(
+                            "EMERGENCY: Journal records flat but broker has position "
+                            "(failed exit?)"
+                        ),
+                    )
+                )
             else:
-                entries.append(ReconciliationEntry(
-                    instrument=instrument,
-                    discrepancy=DiscrepancyType.ORPHAN_BROKER,
-                    broker_direction=broker_pos.direction,
-                    broker_size=broker_pos.size,
-                    broker_deal_id=broker_pos.deal_id,
-                    message="Broker has position not tracked in journal",
-                ))
+                entries.append(
+                    ReconciliationEntry(
+                        instrument=instrument,
+                        discrepancy=DiscrepancyType.ORPHAN_BROKER,
+                        broker_direction=broker_pos.direction,
+                        broker_size=broker_pos.size,
+                        broker_deal_id=broker_pos.deal_id,
+                        message="Broker has position not tracked in journal",
+                    )
+                )
 
         else:
             # journal_has_position and not broker_has_position
             assert journal_entry is not None
-            entries.append(ReconciliationEntry(
-                instrument=instrument,
-                discrepancy=DiscrepancyType.PHANTOM_LOCAL,
-                journal_direction=journal_entry.direction,
-                journal_size=journal_entry.size,
-                message=(
-                    "Journal has position but broker does not "
-                    "(was it closed externally?)"
-                ),
-            ))
+            entries.append(
+                ReconciliationEntry(
+                    instrument=instrument,
+                    discrepancy=DiscrepancyType.PHANTOM_LOCAL,
+                    journal_direction=journal_entry.direction,
+                    journal_size=journal_entry.size,
+                    message=(
+                        "Journal has position but broker does not "
+                        "(was it closed externally?)"
+                    ),
+                )
+            )
 
     return ReconciliationResult(entries=entries)

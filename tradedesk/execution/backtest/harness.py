@@ -40,7 +40,9 @@ async def run_backtest(
       - Computes metrics from ledger state
       - Returns a flat dict row suitable for metrics.csv aggregation
     """
-    raw_client = BacktestClient.from_csv(spec.candle_csv, instrument=spec.instrument, period=spec.period)
+    raw_client = BacktestClient.from_csv(
+        spec.candle_csv, instrument=spec.instrument, period=spec.period
+    )
     await raw_client.start()
 
     # Apply additive price adjustment to candle OHLC (e.g. BID -> MID normalisation).
@@ -67,8 +69,14 @@ async def run_backtest(
             await orig_handle(event)
 
         # Prefer backtest client's canonical timestamp if present.
-        ts = getattr(raw_client, "_current_timestamp", "") or getattr(event, "timestamp", "") or ""
-        ledger.record_equity(EquityRecord(timestamp=str(ts), equity=float(compute_equity(raw_client))))
+        ts = (
+            getattr(raw_client, "_current_timestamp", "")
+            or getattr(event, "timestamp", "")
+            or ""
+        )
+        ledger.record_equity(
+            EquityRecord(timestamp=str(ts), equity=float(compute_equity(raw_client)))
+        )
 
     if hasattr(strat, "_handle_event"):
         setattr(strat, "_handle_event", wrapped_handle)
@@ -85,7 +93,9 @@ async def run_backtest(
         ledger.write_trades_csv(out_dir / "trades.csv")
         ledger.write_equity_csv(out_dir / "equity.csv")
 
-    equity_rows = [{"timestamp": e.timestamp, "equity": str(e.equity)} for e in ledger.equity]
+    equity_rows = [
+        {"timestamp": e.timestamp, "equity": str(e.equity)} for e in ledger.equity
+    ]
     trade_rows = [
         {
             "timestamp": t.timestamp,
@@ -97,7 +107,11 @@ async def run_backtest(
         for t in ledger.trades
     ]
 
-    m = compute_metrics(equity_rows=equity_rows, trade_rows=trade_rows, reporting_scale=float(spec.reporting_scale))
+    m = compute_metrics(
+        equity_rows=equity_rows,
+        trade_rows=trade_rows,
+        reporting_scale=float(spec.reporting_scale),
+    )
 
     # Preserve the existing matrix metrics schema/formatting (keeps current expectations stable).
     return {
@@ -107,10 +121,12 @@ async def run_backtest(
         "round_trips": m.round_trips,
         "final_equity": f"{m.final_equity:.2f}",
         "max_dd": f"{m.max_drawdown:.2f}",
-        "win_rate": f"{m.win_rate*100:.1f}",
+        "win_rate": f"{m.win_rate * 100:.1f}",
         "avg_win": f"{m.avg_win:.2f}",
         "avg_loss": f"{m.avg_loss:.2f}",
         "profit_factor": f"{m.profit_factor:.2f}",
         "expectancy": f"{m.expectancy:.2f}",
-        "avg_hold_min": f"{m.avg_hold_minutes:.1f}" if m.avg_hold_minutes is not None else "",
+        "avg_hold_min": f"{m.avg_hold_minutes:.1f}"
+        if m.avg_hold_minutes is not None
+        else "",
     }

@@ -71,7 +71,11 @@ class BacktestClient(Client):
     ) -> "BacktestClient":
         series: list[CandleSeries] = []
         for (instrument, period), candles in history.items():
-            series.append(CandleSeries(instrument=instrument, period=period, candles=list(candles)))
+            series.append(
+                CandleSeries(
+                    instrument=instrument, period=period, candles=list(candles)
+                )
+            )
         return cls(series, [])
 
     @classmethod

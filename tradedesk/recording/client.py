@@ -40,8 +40,9 @@ class RecordingClient:
         size: float,
         **kwargs,
     ) -> dict[str, Any]:
-
-        resp = await self._inner.place_market_order(instrument=instrument, direction=direction, size=size, **kwargs)
+        resp = await self._inner.place_market_order(
+            instrument=instrument, direction=direction, size=size, **kwargs
+        )
         self._record_trade(
             instrument=instrument,
             direction=direction,
@@ -58,8 +59,9 @@ class RecordingClient:
         size: float,
         **kwargs,
     ) -> dict[str, Any]:
-
-        resp = await self._inner.place_market_order_confirmed(instrument=instrument, direction=direction, size=size, **kwargs)
+        resp = await self._inner.place_market_order_confirmed(
+            instrument=instrument, direction=direction, size=size, **kwargs
+        )
         self._record_trade(
             instrument=instrument,
             direction=direction,
@@ -77,11 +79,14 @@ class RecordingClient:
         price: float,
         reason: str,
     ) -> None:
-
         if price is None:
             # fallback to mark price if available
             get_mark = getattr(self._inner, "get_mark_price", None)
-            price = float(get_mark(instrument)) if callable(get_mark) and get_mark(instrument) is not None else 0.0
+            price = (
+                float(get_mark(instrument))
+                if callable(get_mark) and get_mark(instrument) is not None
+                else 0.0
+            )
 
         ts = self._current_timestamp()
         self._ledger.record_trade(

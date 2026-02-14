@@ -15,9 +15,7 @@ def event(cls):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class DomainEvent(ABC):
-    timestamp: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class EventDispatcher:

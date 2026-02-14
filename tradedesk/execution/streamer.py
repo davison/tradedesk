@@ -1,10 +1,8 @@
-
 import abc
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from tradedesk.strategy.base import BaseStrategy
-
 
 
 class Streamer(abc.ABC):

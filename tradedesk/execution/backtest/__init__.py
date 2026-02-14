@@ -1,4 +1,5 @@
 """Backtesting provider implementation."""
+
 from .client import BacktestClient
 from .excursions import CandleIndex, Excursions, build_candle_index, compute_excursions
 from .harness import BacktestSpec, run_backtest

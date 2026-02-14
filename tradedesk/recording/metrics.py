@@ -10,6 +10,7 @@ from tradedesk.execution.broker import Direction
 @dataclass(frozen=True)
 class RoundTrip:
     """A completed round-trip trade (entry + exit)."""
+
     instrument: str
     direction: Direction
     entry_ts: str
@@ -24,6 +25,7 @@ class RoundTrip:
 @dataclass(frozen=True)
 class Metrics:
     """Performance metrics for a trading strategy."""
+
     trades: int
     round_trips: int
     wins: int
@@ -128,9 +130,15 @@ def round_trips_from_fills(rows: list[dict[str, Any]]) -> list[RoundTrip]:
 
         # If sizes ever differ, this simplistic pairing is insufficient.
         if abs(entry_size - size) > 1e-9:
-            raise ValueError(f"Size mismatch for {instrument}: entry {entry_size} exit {size}")
+            raise ValueError(
+                f"Size mismatch for {instrument}: entry {entry_size} exit {size}"
+            )
 
-        pnl = (price - entry_price) * size if direction == Direction.LONG else (entry_price - price) * size
+        pnl = (
+            (price - entry_price) * size
+            if direction == Direction.LONG
+            else (entry_price - price) * size
+        )
 
         exit_reason = r.get("reason") or "unknown"
 
@@ -151,7 +159,12 @@ def round_trips_from_fills(rows: list[dict[str, Any]]) -> list[RoundTrip]:
     return trips
 
 
-def compute_metrics(*, equity_rows: list[dict[str, Any]], trade_rows: list[dict[str, Any]], reporting_scale: float = 1.0) -> Metrics:
+def compute_metrics(
+    *,
+    equity_rows: list[dict[str, Any]],
+    trade_rows: list[dict[str, Any]],
+    reporting_scale: float = 1.0,
+) -> Metrics:
     """
     Compute comprehensive performance metrics.
 
@@ -166,7 +179,9 @@ def compute_metrics(*, equity_rows: list[dict[str, Any]], trade_rows: list[dict[
     if reporting_scale <= 0:
         raise ValueError("reporting_scale must be > 0")
 
-    equity = [float(r["equity"]) for r in equity_rows if r.get("equity") not in (None, "")]
+    equity = [
+        float(r["equity"]) for r in equity_rows if r.get("equity") not in (None, "")
+    ]
     final_equity = equity[-1] if equity else 0.0
 
     trips = round_trips_from_fills(trade_rows)
@@ -186,7 +201,13 @@ def compute_metrics(*, equity_rows: list[dict[str, Any]], trade_rows: list[dict[
 
     avg_win = (sum(wins) / wins_n) if wins_n else 0.0
     avg_loss = (sum(losses) / losses_n) if losses_n else 0.0  # negative
-    profit_factor = (sum(wins) / abs(sum(losses))) if losses_n and abs(sum(losses)) > 0 else float("inf") if wins_n else 0.0
+    profit_factor = (
+        (sum(wins) / abs(sum(losses)))
+        if losses_n and abs(sum(losses)) > 0
+        else float("inf")
+        if wins_n
+        else 0.0
+    )
     win_rate = (wins_n / rt_n) if rt_n else 0.0
     expectancy = (win_rate * avg_win + (1.0 - win_rate) * avg_loss) if rt_n else 0.0
 

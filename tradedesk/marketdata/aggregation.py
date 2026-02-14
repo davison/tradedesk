@@ -21,7 +21,9 @@ def _period_to_seconds(period: str) -> int:
     raise ValueError(f"Unsupported period: {period!r}")
 
 
-def choose_base_period(target_period: str, *, supported_periods: list[str] | None = None) -> str:
+def choose_base_period(
+    target_period: str, *, supported_periods: list[str] | None = None
+) -> str:
     """
     Choose a suitable base period for building target_period.
 
@@ -63,12 +65,15 @@ def choose_base_period(target_period: str, *, supported_periods: list[str] | Non
         if target_s >= 1 and (target_s % 1 == 0):
             return "SECOND"
 
-    raise ValueError(f"Cannot choose base period for target_period={target_period!r} with supported_periods={supported_periods}")
+    raise ValueError(
+        f"Cannot choose base period for target_period={target_period!r} with supported_periods={supported_periods}"
+    )
 
 
 @dataclass
 class _AggState:
     """Internal aggregation state for a single time bucket."""
+
     count: int
     open: float
     high: float
@@ -94,7 +99,13 @@ class CandleAggregator:
         # Returns aggregated Candle when bucket rolls, None while accumulating
     """
 
-    def __init__(self, *, target_period: str, base_period: Optional[str] = None, supported_periods: list[str] | None = None):
+    def __init__(
+        self,
+        *,
+        target_period: str,
+        base_period: Optional[str] = None,
+        supported_periods: list[str] | None = None,
+    ):
         """
         Initialize aggregator.
 
@@ -104,7 +115,16 @@ class CandleAggregator:
             supported_periods: Broker-supported periods for base_period selection
         """
         self.target_period = target_period.strip().upper()
-        self.base_period = (base_period or choose_base_period(self.target_period, supported_periods=supported_periods)).strip().upper()
+        self.base_period = (
+            (
+                base_period
+                or choose_base_period(
+                    self.target_period, supported_periods=supported_periods
+                )
+            )
+            .strip()
+            .upper()
+        )
 
         self.target_s = _period_to_seconds(self.target_period)
         self.base_s = _period_to_seconds(self.base_period)

@@ -13,7 +13,7 @@ from tradedesk.time_utils import parse_timestamp
 
 @dataclass(frozen=True)
 class CandleIndex:
-    ts: list[datetime]     # sorted ascending
+    ts: list[datetime]  # sorted ascending
     high: list[float]
     low: list[float]
 

@@ -15,6 +15,7 @@ from tradedesk.marketdata import Candle
 # Core conversions
 # ---------------------------------------------------------------------------
 
+
 def parse_timestamp(ts: str | int | float) -> datetime:
     """Parse any timestamp representation to a UTC-aware datetime.
 
@@ -72,6 +73,7 @@ def now_utc_iso() -> str:
 # ---------------------------------------------------------------------------
 # Candle timestamp helpers
 # ---------------------------------------------------------------------------
+
 
 def candle_with_ms_timestamp(candle: Candle) -> Candle:
     """Return *candle* with its timestamp normalised to int milliseconds.

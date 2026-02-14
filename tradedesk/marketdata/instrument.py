@@ -8,9 +8,9 @@ class Instrument:
     """
     A standardized, immutable representation of a tradable financial asset.
 
-    This class serves as a universal identifier to replace broker-specific 
-    strings (such as IG Group's 'EPIC'). It centralizes common identifiers 
-    like ISIN and RIC while allowing for a mapping of specific codes used 
+    This class serves as a universal identifier to replace broker-specific
+    strings (such as IG Group's 'EPIC'). It centralizes common identifiers
+    like ISIN and RIC while allowing for a mapping of specific codes used
     by different provider APIs.
 
     Attributes:
@@ -28,6 +28,7 @@ class Instrument:
         >>> print(aapl)
         AAPL
     """
+
     symbol: str
     isin: Optional[str] = None
     ric: Optional[str] = None
