@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from tradedesk.marketdata.instrument import MarketData
-from tradedesk.marketdata.candle import CandleClose
+from tradedesk.marketdata.events import CandleClosedEvent
 from tradedesk.marketdata.candle import Candle
 from tradedesk.strategy.base import BaseStrategy
 
@@ -18,7 +18,7 @@ class Strat(BaseStrategy):
     async def on_price_update(self, md: MarketData):
         await self.on_price_update_mock(md)
 
-    async def on_candle_close(self, cc: CandleClose):
+    async def on_candle_close(self, cc: CandleClosedEvent):
         await self.on_candle_update_mock(cc)
         await super().on_candle_close(cc)
 
@@ -63,7 +63,7 @@ async def test_handle_event_candleclose_dispatches_and_uses_default_storage():
         volume=10.0,
         tick_count=3,
     )
-    event = CandleClose(instrument="EPIC", period="5MINUTE", candle=candle)
+    event = CandleClosedEvent(instrument="EPIC", timeframe="5MINUTE", candle=candle)
 
     await s._handle_event(event)
 

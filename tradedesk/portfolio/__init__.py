@@ -1,6 +1,7 @@
 """Portfolio management for multi-instrument trading."""
 
 from .config import BacktestPortfolioConfig, LivePortfolioConfig, PortfolioConfig
+from .events import event
 from .metrics_tracker import InstrumentWindow, WeightedRollingTracker
 from .reconciliation import (
     DiscrepancyType,
@@ -11,7 +12,6 @@ from .reconciliation import (
 from .risk import EqualSplitRiskPolicy, RiskAllocationPolicy, atr_normalised_size
 from .runner import PortfolioRunner
 from .types import (
-    CandleCloseEvent,
     Instrument,
     PortfolioStrategy,
     StrategySpec,
@@ -19,7 +19,6 @@ from .types import (
 
 __all__ = [
     "BacktestPortfolioConfig",
-    "CandleCloseEvent",
     "DiscrepancyType",
     "EqualSplitRiskPolicy",
     "Instrument",
@@ -34,5 +33,6 @@ __all__ = [
     "StrategySpec",
     "WeightedRollingTracker",
     "atr_normalised_size",
+    "event",
     "reconcile",
 ]

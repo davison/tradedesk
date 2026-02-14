@@ -5,7 +5,7 @@ import pytest
 
 from tradedesk import run_strategies
 from tradedesk.marketdata.instrument import MarketData
-from tradedesk.marketdata.candle import CandleClose
+from tradedesk.marketdata.events import CandleClosedEvent
 from tradedesk.marketdata.subscriptions import MarketSubscription
 from tradedesk.execution.backtest.client import BacktestClient
 from tradedesk.strategy.base import BaseStrategy
@@ -55,7 +55,7 @@ def test_backtest_from_csv_replays_and_trades(tmp_path: Path):
         async def on_price_update(self, market_data: MarketData):
             pass
 
-        async def on_candle_close(self, candle_close: CandleClose):
+        async def on_candle_close(self, candle_close: CandleClosedEvent):
             if candle_close.candle.close == 10:
                 await self.client.place_market_order(instrument=candle_close.instrument, direction="BUY", size=1.0)
             if candle_close.candle.close == 12:

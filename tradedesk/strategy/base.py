@@ -13,20 +13,29 @@ overriding on_price_update() and/or on_candle_update().
 
 import abc
 import asyncio
+from enum import Enum
 import logging
 from datetime import datetime, timezone
 from tradedesk.execution import Client
 from tradedesk.marketdata import (
     Candle,
-    CandleClose,
     ChartHistory,
     ChartSubscription,
     MarketData,
     MarketSubscription,
 )
+from tradedesk.marketdata.events import CandleClosedEvent
 from tradedesk.marketdata.indicators import Indicator
 
 log = logging.getLogger(__name__)
+
+
+class Signal(str, Enum):
+    ENTRY_LONG = "entry_long"
+    ENTRY_SHORT = "entry_short"
+    EXIT = "exit"
+    EXIT_STOP = "exit_stop"
+    NEUTRAL = "neutral"
 
 
 # ----------------------------------------------------------------------
@@ -262,7 +271,7 @@ class BaseStrategy(abc.ABC):
         """
         pass
 
-    async def on_candle_close(self, candle_close: CandleClose) -> None:
+    async def on_candle_close(self, candle_close: CandleClosedEvent) -> None:
         """
         Handle a completed candle for a subscribed instrument and period.
 
@@ -272,11 +281,11 @@ class BaseStrategy(abc.ABC):
         to implement candle-based trading logic.
 
         Args:
-            candle_close: A `CandleClose` object containing the completed candle
+            candle_close: A `CandleClosedEvent` object containing the completed candle
                 and its metadata.
         """
         # Store in chart history by default
-        key = (candle_close.instrument, candle_close.period)
+        key = (candle_close.instrument, candle_close.timeframe)
         if key in self.charts:
             self.charts[key].add_candle(candle_close.candle)
 
@@ -363,7 +372,7 @@ class BaseStrategy(abc.ABC):
         streamer = self.client.get_streamer()
         await streamer.run(self)
 
-    async def _handle_event(self, event: MarketData | CandleClose) -> None:
+    async def _handle_event(self, event: MarketData | CandleClosedEvent) -> None:
         """
         Internal event dispatcher.
 
@@ -376,7 +385,7 @@ class BaseStrategy(abc.ABC):
         if isinstance(event, MarketData):
             await self.on_price_update(event)
 
-        elif isinstance(event, CandleClose):
+        elif isinstance(event, CandleClosedEvent):
             await self.on_candle_close(event)
 
         else:

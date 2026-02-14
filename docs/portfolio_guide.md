@@ -37,7 +37,8 @@ await runner.on_candle_close(candle_event)
 Strategies managed by the portfolio must implement the `PortfolioStrategy` protocol with a **two-phase lifecycle**:
 
 ```python
-from tradedesk.portfolio import PortfolioStrategy, CandleCloseEvent, Instrument
+from tradedesk.portfolio import PortfolioStrategy, Instrument
+from tradedesk.marketdata.events import CandleClosedEvent
 
 class MyStrategy:
     def __init__(self, instrument: str):
@@ -53,7 +54,7 @@ class MyStrategy:
         """Return True if strategy's regime is active."""
         return self._regime_active
 
-    async def update_state(self, event: CandleCloseEvent) -> None:
+    async def update_state(self, event: CandleClosedEvent) -> None:
         """Phase 1: Update indicators and regime state.
 
         Do NOT make trading decisions here. This happens before
@@ -163,10 +164,10 @@ await strategy.evaluate_signals()
 from tradedesk.portfolio import (
     PortfolioRunner,
     EqualSplitRiskPolicy,
-    CandleCloseEvent,
     Instrument,
 )
 from tradedesk.marketdata import Candle
+from tradedesk.marketdata.events import CandleClosedEvent
 
 class SimpleStrategy:
     def __init__(self, instrument: str, threshold: float):
@@ -183,7 +184,7 @@ class SimpleStrategy:
     def is_regime_active(self) -> bool:
         return self._regime_active
 
-    async def update_state(self, event: CandleCloseEvent) -> None:
+    async def update_state(self, event: CandleClosedEvent) -> None:
         """Phase 1: Update indicators and regime state."""
         self._current_candle = event.candle
         self._price_history.append(event.candle.close)
@@ -218,9 +219,9 @@ runner = PortfolioRunner(
 candle = Candle(timestamp="1234567890000", open=1.1000, high=1.1050,
                 low=1.0950, close=1.1020)
 await runner.on_candle_close(
-    CandleCloseEvent(
+    CandleClosedEvent(
         instrument=Instrument("EURUSD"),
-        period="15MINUTE",
+        timeframe="15MINUTE",
         candle=candle,
     )
 )

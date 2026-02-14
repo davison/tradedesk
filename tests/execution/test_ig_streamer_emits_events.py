@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 from tradedesk.marketdata.instrument import MarketData
 from tradedesk.marketdata.subscriptions import MarketSubscription
 import tradedesk.execution.ig.price_streamer as ig_streamer
-from tradedesk.marketdata.candle import CandleClose
+from tradedesk.marketdata.events import CandleClosedEvent
 from tradedesk.marketdata.subscriptions import ChartSubscription
 from tradedesk.strategy.base import BaseStrategy
 
@@ -136,7 +136,7 @@ async def test_lightstreamer_emits_marketdata_and_candleclose_and_disconnects():
     assert strat._handle_event.await_count >= 2  # type: ignore[attr-defined]
     events = [c.args[0] for c in strat._handle_event.await_args_list]  # type: ignore[attr-defined]
     assert any(isinstance(e, MarketData) for e in events)
-    assert any(isinstance(e, CandleClose) for e in events)
+    assert any(isinstance(e, CandleClosedEvent) for e in events)
 
     # Cancel and ensure disconnect called
     task.cancel()

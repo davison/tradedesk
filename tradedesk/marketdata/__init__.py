@@ -1,5 +1,5 @@
 from .aggregation import CandleAggregator, choose_base_period
-from .candle import Candle, CandleClose
+from .candle import Candle
 from .chart_history import ChartHistory
 from .instrument import Instrument, MarketData
 from .subscriptions import (
@@ -11,7 +11,6 @@ from .subscriptions import (
 __all__ = [
     "Candle",
     "CandleAggregator",
-    "CandleClose",
     "ChartHistory",
     "ChartSubscription",
     "Instrument",

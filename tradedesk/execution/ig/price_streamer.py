@@ -9,8 +9,8 @@ from tradedesk.marketdata import (
     Candle,
     MarketSubscription,
     ChartSubscription,
-    CandleClose,
 )
+from tradedesk.marketdata.events import CandleClosedEvent
 
 log = logging.getLogger(__name__)
 
@@ -194,7 +194,7 @@ class Lightstreamer(Streamer):
                                 data = {
                                     "type": "chart",
                                     "instrument": sub.instrument,
-                                    "period": sub.period,
+                                    "timeframe": sub.period,
                                     "candle": {
                                         "timestamp": update.getValue("UTM")
                                         or datetime.now(timezone.utc).isoformat(),
@@ -315,9 +315,9 @@ class Lightstreamer(Streamer):
                 try:
                     candle_data = payload["candle"]
                     candle = Candle(**candle_data)
-                    event = CandleClose(
+                    event = CandleClosedEvent(
                         instrument=payload["instrument"],
-                        period=payload["period"],
+                        timeframe=payload["timeframe"],
                         candle=candle,
                     )
                     await strategy._handle_event(event)

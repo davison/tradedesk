@@ -38,7 +38,7 @@ class BacktestClient(Client):
 
     - start/close are no-ops
     - get_historical_candles serves from in-memory history
-    - get_streamer replays CandleClose events
+    - get_streamer replays CandleClosedEvent events
     - place_market_order executes virtual market fills at the latest mark price
     """
 

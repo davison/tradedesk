@@ -4,7 +4,8 @@ import pytest
 
 from tradedesk import run_strategies
 from tradedesk.marketdata.instrument import MarketData
-from tradedesk.marketdata.candle import Candle, CandleClose
+from tradedesk.marketdata.candle import Candle
+from tradedesk.marketdata.events import CandleClosedEvent
 from tradedesk.execution.backtest.client import BacktestClient
 from tradedesk.strategy.base import BaseStrategy
 from tradedesk.marketdata.subscriptions import ChartSubscription
@@ -30,7 +31,7 @@ def test_backtest_replays_candles_and_executes_virtual_trades():
         async def on_price_update(self, md: MarketData):
             pass
 
-        async def on_candle_close(self, cc: CandleClose):
+        async def on_candle_close(self, cc: CandleClosedEvent):
             # record receipt
             seen.append(cc.candle.close)
 

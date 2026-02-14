@@ -1,3 +1,8 @@
-from .base import BaseStrategy
+from .base import BaseStrategy, Signal
+from .events import SignalGeneratedEvent
 
-__all__ = ["BaseStrategy"]
+__all__ = [
+    "BaseStrategy",
+    "Signal",
+    "SignalGeneratedEvent",
+]

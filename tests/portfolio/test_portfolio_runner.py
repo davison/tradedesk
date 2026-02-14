@@ -4,7 +4,8 @@ import pytest
 
 from tradedesk.portfolio.risk import EqualSplitRiskPolicy
 from tradedesk.portfolio.runner import PortfolioRunner
-from tradedesk.portfolio.types import CandleCloseEvent, Instrument
+from tradedesk.portfolio.types import Instrument
+from tradedesk.marketdata.events import CandleClosedEvent
 
 
 class FakeStrategy:
@@ -23,7 +24,7 @@ class FakeStrategy:
     def set_risk_per_trade(self, value: float) -> None:
         self._rpt = float(value)
 
-    async def update_state(self, event: CandleCloseEvent) -> None:
+    async def update_state(self, event: CandleClosedEvent) -> None:
         self.update_state_calls += 1
 
     async def evaluate_signals(self) -> None:
@@ -47,9 +48,9 @@ async def test_runner_splits_risk_across_active_strategies():
         default_risk_per_trade=10.0,
     )
 
-    await r.on_candle_close(CandleCloseEvent(
+    await r.on_candle_close(CandleClosedEvent(
         instrument=Instrument("EURUSD"),
-        period="15MINUTE",
+        timeframe="15MINUTE",
         candle=None
     ))
 

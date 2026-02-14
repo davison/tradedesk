@@ -112,7 +112,7 @@ The two most important are:
 
 ```python
 async def on_price_update(self, market_data: MarketData): ...
-async def on_candle_close(self, candle_close: CandleClose): ...
+async def on_candle_close(self, candle_close: CandleClosedEvent): ...
 ```
 
 Ordering guarantees:
@@ -433,7 +433,7 @@ from collections.abc import Callable
 
 from tradedesk.strategy import BaseStrategy
 from tradedesk.subscriptions import ChartSubscription
-from tradedesk.marketdata import CandleClose
+from tradedesk.marketdata.events import CandleClosedEvent
 
 log = logging.getLogger(__name__)
 
@@ -485,7 +485,7 @@ class EmaAtrStrategy(BaseStrategy):
             for c in candles:
                 st.on_candle_close(c)
 
-    async def on_candle_close(self, candle_close: CandleClose) -> None:
+    async def on_candle_close(self, candle_close: CandleClosedEvent) -> None:
         await super().on_candle_close(candle_close)
 
         epic = candle_close.epic
