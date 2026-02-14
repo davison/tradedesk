@@ -1,0 +1,83 @@
+import asyncio
+import logging
+from abc import ABC
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Awaitable, Callable
+
+logger = logging.getLogger(__name__)
+
+
+def event(cls):
+    return dataclass(frozen=True, slots=True)(cls)
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DomainEvent(ABC):
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+
+class EventDispatcher:
+    """Async event dispatcher for domain events.
+
+    Handlers can be sync or async functions. Exceptions in handlers are logged
+    but don't stop dispatch to other handlers.
+    """
+
+    def __init__(self):
+        self._handlers: dict[type[DomainEvent], list[Callable]] = defaultdict(list)
+
+    def subscribe(
+        self,
+        event_type: type[DomainEvent],
+        handler: Callable[[DomainEvent], None | Awaitable[None]],
+    ):
+        """Register a handler for an event type.
+
+        Args:
+            event_type: The event class to subscribe to
+            handler: Sync or async callable that accepts the event
+        """
+        self._handlers[event_type].append(handler)
+
+    def unsubscribe(self, event_type: type[DomainEvent], handler: Callable):
+        """Unregister a handler from an event type."""
+        if handler in self._handlers[event_type]:
+            self._handlers[event_type].remove(handler)
+
+    async def publish(self, event: DomainEvent):
+        """Dispatch event to all registered handlers.
+
+        Handlers are called sequentially (await each). Exceptions are logged
+        and don't prevent other handlers from running.
+
+        Args:
+            event: The domain event to dispatch
+        """
+        handlers = self._handlers[type(event)]
+        for handler in handlers:
+            try:
+                result = handler(event)
+                # If handler is async, await it
+                if asyncio.iscoroutine(result):
+                    await result
+            except Exception as e:
+                logger.error(
+                    f"Event handler {handler.__name__} failed for {event.__class__.__name__}: {e}",
+                    exc_info=True,
+                )
+
+
+# Lazy singleton
+_dispatcher: EventDispatcher | None = None
+
+
+def get_dispatcher() -> EventDispatcher:
+    """Get the global event dispatcher instance."""
+    global _dispatcher
+    if _dispatcher is None:
+        _dispatcher = EventDispatcher()
+    return _dispatcher
