@@ -29,6 +29,7 @@ class StrategySpec:
         kwargs: A dictionary of keyword arguments to pass to the strategy's
             `__init__` method during instantiation.
     """
+
     instrument: str
     period: str
     strategy_cls: type

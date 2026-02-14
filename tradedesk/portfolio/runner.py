@@ -23,6 +23,7 @@ class PortfolioRunner:
       - Perform portfolio rebalancing
       - Attempt to increase utilisation
     """
+
     strategies: dict[Instrument, PortfolioStrategy]
     policy: RiskAllocationPolicy
     default_risk_per_trade: float

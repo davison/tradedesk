@@ -47,7 +47,9 @@ class RiskAllocationPolicy(ABC):
     """
 
     @abstractmethod
-    def allocate(self, active_instruments: list[Instrument]) -> Mapping[Instrument, float]:
+    def allocate(
+        self, active_instruments: list[Instrument]
+    ) -> Mapping[Instrument, float]:
         """
         Allocate risk budget across active instruments.
 
@@ -69,9 +71,12 @@ class EqualSplitRiskPolicy(RiskAllocationPolicy):
       - If k active regimes: allocate budget/k to each active instrument.
       - If k == 0: allocate nothing (caller decides what to do when no regimes active).
     """
+
     portfolio_risk_budget: float
 
-    def allocate(self, active_instruments: list[Instrument]) -> Mapping[Instrument, float]:
+    def allocate(
+        self, active_instruments: list[Instrument]
+    ) -> Mapping[Instrument, float]:
         """
         Allocate risk budget across active instruments.
 

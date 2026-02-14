@@ -83,7 +83,11 @@ class BacktestStreamer(Streamer):
                 stream.append(
                     (
                         ts,
-                        CandleClosedEvent(instrument=cseries.instrument, timeframe=cseries.period, candle=c),
+                        CandleClosedEvent(
+                            instrument=cseries.instrument,
+                            timeframe=cseries.period,
+                            candle=c,
+                        ),
                     )
                 )
 

@@ -41,7 +41,11 @@ class WeightedRollingTracker:
     """
 
     window_size: int = 1500  # Total trades to maintain per instrument
-    decay_weights: tuple[float, float, float] = (0.60, 0.30, 0.10)  # recent, middle, old
+    decay_weights: tuple[float, float, float] = (
+        0.60,
+        0.30,
+        0.10,
+    )  # recent, middle, old
     recompute_interval: int = 50  # Recompute metrics every N trades
 
     # Internal state
@@ -81,18 +85,20 @@ class WeightedRollingTracker:
         # Read fills from trades.csv
         fills_dicts = []
 
-        with open(trades_csv_path, 'r') as f:
+        with open(trades_csv_path, "r") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 # Support both 'instrument' and legacy 'epic' column names
-                instrument = row.get('instrument') or row.get('epic', '')
-                fills_dicts.append({
-                    'instrument': instrument,
-                    'direction': row['direction'],
-                    'timestamp': row['timestamp'],
-                    'price': row['price'],
-                    'size': row['size']
-                })
+                instrument = row.get("instrument") or row.get("epic", "")
+                fills_dicts.append(
+                    {
+                        "instrument": instrument,
+                        "direction": row["direction"],
+                        "timestamp": row["timestamp"],
+                        "price": row["price"],
+                        "size": row["size"],
+                    }
+                )
 
         if not fills_dicts:
             raise ValueError(f"No trades found in {trades_csv_path}")
@@ -109,14 +115,14 @@ class WeightedRollingTracker:
                 trades_by_instrument[instrument] = []
 
             trade = {
-                'instrument': instrument,
-                'direction': trip.direction.value,
-                'entry_ts': trip.entry_ts,
-                'exit_ts': trip.exit_ts,
-                'entry_price': trip.entry_price,
-                'exit_price': trip.exit_price,
-                'size': trip.size,
-                'pnl': trip.pnl,
+                "instrument": instrument,
+                "direction": trip.direction.value,
+                "entry_ts": trip.entry_ts,
+                "exit_ts": trip.exit_ts,
+                "entry_price": trip.entry_price,
+                "exit_price": trip.exit_price,
+                "size": trip.size,
+                "pnl": trip.pnl,
             }
             trades_by_instrument[instrument].append(trade)
 
@@ -125,7 +131,11 @@ class WeightedRollingTracker:
             window = InstrumentWindow(max_size=self.window_size)
 
             # Take last window_size trades (most recent)
-            recent_trades = trades[-self.window_size:] if len(trades) > self.window_size else trades
+            recent_trades = (
+                trades[-self.window_size :]
+                if len(trades) > self.window_size
+                else trades
+            )
 
             for trade in recent_trades:
                 window.add_trade(trade)
@@ -144,7 +154,7 @@ class WeightedRollingTracker:
             trades: List of trade dicts with keys: instrument, pnl, (other fields optional)
         """
         for trade in trades:
-            instrument = trade['instrument']
+            instrument = trade["instrument"]
 
             if instrument not in self._windows:
                 self._windows[instrument] = InstrumentWindow(max_size=self.window_size)
@@ -157,7 +167,9 @@ class WeightedRollingTracker:
             self._cached_metrics = None
             self._trade_count = 0
 
-    def compute_metrics(self, instruments: list[Instrument]) -> Mapping[Instrument, dict]:
+    def compute_metrics(
+        self, instruments: list[Instrument]
+    ) -> Mapping[Instrument, dict]:
         """
         Compute weighted performance metrics for given instruments.
 
@@ -178,17 +190,13 @@ class WeightedRollingTracker:
             Mapping from Instrument to metrics dict
         """
         # Check if we need to recompute (cache miss for any requested instrument)
-        need_recompute = (
-            self._cached_metrics is None
-            or any(str(inst) not in self._cached_metrics for inst in instruments)
+        need_recompute = self._cached_metrics is None or any(
+            str(inst) not in self._cached_metrics for inst in instruments
         )
 
         if not need_recompute:
             # All requested instruments are in cache
-            return {
-                inst: self._cached_metrics[str(inst)]
-                for inst in instruments
-            }
+            return {inst: self._cached_metrics[str(inst)] for inst in instruments}
 
         # Compute fresh metrics for ALL instruments in windows (not just requested)
         # This ensures cache is complete for future calls
@@ -215,9 +223,9 @@ class WeightedRollingTracker:
             )
 
             all_metrics[instrument] = {
-                'return_to_risk_ratio': return_to_risk,
-                'total_trades': len(trades),
-                'weighted_pnl': total_weighted_pnl,
+                "return_to_risk_ratio": return_to_risk,
+                "total_trades": len(trades),
+                "weighted_pnl": total_weighted_pnl,
             }
 
         # Cache all computed metrics
@@ -228,7 +236,9 @@ class WeightedRollingTracker:
 
         for inst in instruments:
             instrument = str(inst)
-            metrics_by_instrument[inst] = all_metrics.get(instrument, self._empty_metrics())
+            metrics_by_instrument[inst] = all_metrics.get(
+                instrument, self._empty_metrics()
+            )
 
         return metrics_by_instrument
 
@@ -270,7 +280,7 @@ class WeightedRollingTracker:
 
         # Apply weights to each third
         for i, trade in enumerate(trades):
-            pnl = float(trade['pnl'])
+            pnl = float(trade["pnl"])
 
             if i < old_end:
                 # Oldest third
@@ -289,7 +299,7 @@ class WeightedRollingTracker:
     def _empty_metrics(self) -> dict:
         """Return empty metrics for instruments with no data."""
         return {
-            'return_to_risk_ratio': 0.0,
-            'total_trades': 0,
-            'weighted_pnl': 0.0,
+            "return_to_risk_ratio": 0.0,
+            "total_trades": 0,
+            "weighted_pnl": 0.0,
         }

@@ -337,7 +337,9 @@ class BaseStrategy(abc.ABC):
             await asyncio.Future()  # Wait forever
             return
 
-        last_prices: dict[str, float | None] = {instrument: None for instrument in market_instruments}
+        last_prices: dict[str, float | None] = {
+            instrument: None for instrument in market_instruments
+        }
 
         while True:
             for instrument in market_instruments:
