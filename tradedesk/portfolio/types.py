@@ -6,28 +6,12 @@ instruments.
 """
 
 from dataclasses import dataclass
-from typing import Any, NewType, Protocol
+from typing import Any, NewType, Protocol, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from tradedesk.marketdata.events import CandleClosedEvent
 
 Instrument = NewType("Instrument", str)
-
-
-@dataclass(frozen=True)
-class CandleCloseEvent:
-    """Event representing a completed candle for a specific instrument and period.
-
-    This event is dispatched by the portfolio orchestrator to the relevant
-    strategy instance.
-
-    Attributes:
-        instrument: The instrument for which the candle closed.
-        period: The timeframe of the candle (e.g., "15MINUTE").
-        candle: The completed candle object. The type is `Any` to remain
-            agnostic of the specific `Candle` implementation used by
-            the strategy or backtester.
-    """
-    instrument: Instrument
-    period: str
-    candle: Any  # Keep client-agnostic; strategies know their Candle type
 
 
 @dataclass(frozen=True)
@@ -87,7 +71,7 @@ class PortfolioStrategy(Protocol):
         """
         ...
 
-    async def update_state(self, event: CandleCloseEvent) -> None:
+    async def update_state(self, event: "CandleClosedEvent") -> None:
         """Update indicators and regime state based on new candle.
 
         This phase happens before risk allocation. Strategies should update
@@ -95,7 +79,7 @@ class PortfolioStrategy(Protocol):
         but NOT make entry/exit decisions.
 
         Args:
-            event: The `CandleCloseEvent` containing the completed candle.
+            event: The `CandleClosedEvent` containing the completed candle.
         """
         ...
 

@@ -49,12 +49,3 @@ class Candle:
             f"L={self.low:.5f}, C={self.close:.5f}, "
             f"V={self.volume:.0f})"
         )
-
-
-@dataclass(frozen=True)
-class CandleClose:
-    """Represents a completed OHLCV candle."""
-
-    instrument: str
-    period: str
-    candle: Candle

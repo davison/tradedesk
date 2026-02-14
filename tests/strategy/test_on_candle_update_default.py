@@ -1,6 +1,6 @@
 import pytest
 
-from tradedesk.marketdata.candle import CandleClose
+from tradedesk.marketdata.events import CandleClosedEvent
 from tradedesk.marketdata.subscriptions import ChartSubscription
 
 
@@ -12,7 +12,7 @@ class TestOnCandleUpdateDefault:
         strat = Strat(client=None)
 
         candle = candle_factory(0)
-        await strat.on_candle_close(CandleClose("EPIC", "1MINUTE", candle))
+        await strat.on_candle_close(CandleClosedEvent(instrument="EPIC", timeframe="1MINUTE", candle=candle))
 
         chart = strat.charts[("EPIC", "1MINUTE")]
         assert len(chart) == 1
@@ -23,4 +23,4 @@ class TestOnCandleUpdateDefault:
         strat = Strat(client=None)
 
         # Should not raise
-        await strat.on_candle_close(CandleClose("EPIC", "1MINUTE", candle_factory(0)))
+        await strat.on_candle_close(CandleClosedEvent(instrument="EPIC", timeframe="1MINUTE", candle=candle_factory(0)))

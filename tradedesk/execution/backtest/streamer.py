@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import Any, Iterable
 
 from tradedesk.execution import Streamer
-from tradedesk.marketdata import Candle, CandleClose, MarketData
+from tradedesk.marketdata import Candle, MarketData
+from tradedesk.marketdata.events import CandleClosedEvent
 
 log = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ class BacktestStreamer(Streamer):
     """
     Replay streamer.
 
-    Replays MarketData and CandleClose events in timestamp order across all
+    Replays MarketData and CandleClosedEvent events in timestamp order across all
     series, calling `strategy._handle_event(...)`.
     """
 
@@ -82,7 +83,7 @@ class BacktestStreamer(Streamer):
                 stream.append(
                     (
                         ts,
-                        CandleClose(instrument=cseries.instrument, period=cseries.period, candle=c),
+                        CandleClosedEvent(instrument=cseries.instrument, timeframe=cseries.period, candle=c),
                     )
                 )
 
@@ -103,7 +104,7 @@ class BacktestStreamer(Streamer):
                     self._client._set_mark_price(
                         event.instrument, (event.bid + event.offer) / 2
                     )
-                elif isinstance(event, CandleClose):
+                elif isinstance(event, CandleClosedEvent):
                     event_ts = event.candle.timestamp
                     self._client._set_mark_price(event.instrument, event.candle.close)
 

@@ -102,7 +102,7 @@ class TestRunStreaming:
 
         async def on_candle_close(cc):
             await strategy_module.BaseStrategy.on_candle_close(strat, cc)
-            seen_candles.append((cc.instrument, cc.period, cc.candle))
+            seen_candles.append((cc.instrument, cc.timeframe, cc.candle))
 
         strat.on_price_update = on_price_update  # type: ignore
         strat.on_candle_close = on_candle_close  # type: ignore

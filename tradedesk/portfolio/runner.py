@@ -2,7 +2,8 @@
 
 from dataclasses import dataclass
 
-from tradedesk.portfolio.types import CandleCloseEvent, Instrument, PortfolioStrategy
+from tradedesk.portfolio.types import Instrument, PortfolioStrategy
+from tradedesk.marketdata.events import CandleClosedEvent
 from tradedesk.portfolio.risk import RiskAllocationPolicy
 
 
@@ -49,7 +50,7 @@ class PortfolioRunner:
             else:
                 s.set_risk_per_trade(float(self.default_risk_per_trade))
 
-    async def on_candle_close(self, event: CandleCloseEvent) -> None:
+    async def on_candle_close(self, event: CandleClosedEvent) -> None:
         """
         Process a candle close event using two-phase lifecycle.
 
