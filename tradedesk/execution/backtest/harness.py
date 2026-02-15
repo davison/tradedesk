@@ -28,7 +28,7 @@ async def run_backtest(
     spec: BacktestSpec,
     out_dir: Path,
     strategy_factory: Callable[[BacktestClient], BaseStrategy],
-) -> dict:
+) -> dict[str, str | int | float]:
     """
     Strategy-agnostic candle backtest runner.
 
@@ -59,12 +59,12 @@ async def run_backtest(
     ledger = TradeLedger()
     client = RecordingClient(raw_client, ledger=ledger)
 
-    strat = strategy_factory(client)
+    strat = strategy_factory(raw_client)
 
     orig_handle = getattr(strat, "_handle_event", None)
 
     # BaseStrategy has _handle_event in tradedesk.strategy; wrap it to sample equity.
-    async def wrapped_handle(event):
+    async def wrapped_handle(event: object) -> None:
         if callable(orig_handle):
             await orig_handle(event)
 

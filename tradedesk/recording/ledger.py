@@ -2,6 +2,7 @@ import csv
 from dataclasses import dataclass, field
 from datetime import timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 from .metrics import round_trips_from_fills
 from .opportunity import OpportunityRecorder
@@ -9,7 +10,7 @@ from .types import EquityRecord, RecordingMode, TradeRecord
 from tradedesk.time_utils import parse_timestamp
 
 
-def trade_rows_from_trades(trades) -> list[dict]:
+def trade_rows_from_trades(trades: list[TradeRecord]) -> list[dict[str, str]]:
     """Convert TradeRecord-like objects into the dict rows expected by
     ``round_trips_from_fills`` and related helpers.
     """
@@ -35,10 +36,12 @@ class TradeLedger:
     out_dir: Path | None = None  # Required for broker mode
     initial_balance: float = 10000.0  # Starting equity for broker mode
     _current_balance: float | None = None  # Running balance for broker mode
-    _open_positions: dict = field(default_factory=dict)  # Track positions for P&L calc
+    _open_positions: dict[str, dict[str, Any]] = field(
+        default_factory=dict
+    )  # Track positions for P&L calc
     _last_equity_date: str | None = None  # Track last daily equity write (YYYY-MM-DD)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.mode == RecordingMode.BROKER:
             if self.out_dir is None:
                 raise ValueError("out_dir required for BROKER mode")
@@ -147,6 +150,7 @@ class TradeLedger:
             )
 
             for t in trips:
+                hold: float | str
                 try:
                     hold = (
                         parse_timestamp(t.exit_ts) - parse_timestamp(t.entry_ts)
@@ -333,6 +337,8 @@ class TradeLedger:
 
     def _initialize_trades_csv(self) -> None:
         """Create trades.csv with header (broker mode only)"""
+        if self.out_dir is None:
+            raise ValueError("out_dir is None")
         path = self.out_dir / "trades.csv"
         with path.open("w", newline="") as f:
             w = csv.writer(f)
@@ -342,6 +348,8 @@ class TradeLedger:
 
     def _append_trade_to_csv(self, record: TradeRecord) -> None:
         """Atomic append of single trade (broker mode only)"""
+        if self.out_dir is None:
+            raise ValueError("out_dir is None")
         path = self.out_dir / "trades.csv"
         with path.open("a", newline="") as f:
             w = csv.writer(f)
@@ -372,29 +380,30 @@ class TradeLedger:
             existing = self._open_positions[position_key]
             if existing["direction"] != record.direction:
                 # Closing trade - calculate P&L
-                entry_price = existing["price"]
-                exit_price = record.price
-                size = min(existing["size"], record.size)
+                entry_price = float(existing["price"])
+                exit_price = float(record.price)
+                size = min(float(existing["size"]), float(record.size))
 
                 if existing["direction"] == "BUY":
                     pnl = (exit_price - entry_price) * size
                 else:  # existing["direction"] == "SELL"
                     pnl = (entry_price - exit_price) * size
 
-                self._current_balance += pnl
+                if self._current_balance is not None:
+                    self._current_balance += pnl
 
                 # Update or remove position
-                remaining_size = existing["size"] - record.size
+                remaining_size = float(existing["size"]) - float(record.size)
                 if remaining_size <= 0:
                     del self._open_positions[position_key]
                 else:
                     existing["size"] = remaining_size
             else:
                 # Adding to position (average price)
-                total_size = existing["size"] + record.size
+                total_size = float(existing["size"]) + float(record.size)
                 avg_price = (
-                    (existing["price"] * existing["size"])
-                    + (record.price * record.size)
+                    (float(existing["price"]) * float(existing["size"]))
+                    + (float(record.price) * float(record.size))
                 ) / total_size
                 existing["price"] = avg_price
                 existing["size"] = total_size
@@ -409,11 +418,14 @@ class TradeLedger:
 
         if self._last_equity_date != current_date:
             # New day - append to equity_daily.csv
-            self._append_daily_equity(current_date, self._current_balance)
+            if self._current_balance is not None:
+                self._append_daily_equity(current_date, self._current_balance)
             self._last_equity_date = current_date
 
     def _append_daily_equity(self, date: str, equity: float) -> None:
         """Append daily equity snapshot (broker mode only)"""
+        if self.out_dir is None:
+            raise ValueError("out_dir is None")
         path = self.out_dir / "equity_daily.csv"
 
         # Create with header if doesn't exist

@@ -13,16 +13,16 @@ from tradedesk.recording import round_trips_from_fills
 class InstrumentWindow:
     """Rolling window of trades for a single instrument."""
 
-    trades: deque[dict] = field(default_factory=deque)
+    trades: deque[dict[str, str | float]] = field(default_factory=deque)
     max_size: int = 1500
 
-    def add_trade(self, trade: dict) -> None:
+    def add_trade(self, trade: dict[str, str | float]) -> None:
         """Add a trade to the window, dropping oldest if at capacity."""
         if len(self.trades) >= self.max_size:
             self.trades.popleft()
         self.trades.append(trade)
 
-    def get_trades(self) -> list[dict]:
+    def get_trades(self) -> list[dict[str, str | float]]:
         """Get all trades in the window as a list."""
         return list(self.trades)
 
@@ -51,9 +51,11 @@ class WeightedRollingTracker:
     # Internal state
     _windows: dict[str, InstrumentWindow] = field(default_factory=dict, init=False)
     _trade_count: int = field(default=0, init=False)
-    _cached_metrics: dict[str, dict] | None = field(default=None, init=False)
+    _cached_metrics: dict[str, dict[str, float | int]] | None = field(
+        default=None, init=False
+    )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate decay weights sum to 1.0."""
         total = sum(self.decay_weights)
         if abs(total - 1.0) > 0.001:
@@ -107,7 +109,7 @@ class WeightedRollingTracker:
         round_trips = round_trips_from_fills(fills_dicts)
 
         # Group by instrument
-        trades_by_instrument: dict[str, list[dict]] = {}
+        trades_by_instrument: dict[str, list[dict[str, str | float]]] = {}
 
         for trip in round_trips:
             instrument = trip.instrument
@@ -146,7 +148,7 @@ class WeightedRollingTracker:
         self._cached_metrics = None
         self._trade_count = 0
 
-    def update_from_trades(self, trades: list[dict]) -> None:
+    def update_from_trades(self, trades: list[dict[str, str | float]]) -> None:
         """
         Add new trades to the rolling windows.
 
@@ -154,7 +156,7 @@ class WeightedRollingTracker:
             trades: List of trade dicts with keys: instrument, pnl, (other fields optional)
         """
         for trade in trades:
-            instrument = trade["instrument"]
+            instrument = str(trade["instrument"])
 
             if instrument not in self._windows:
                 self._windows[instrument] = InstrumentWindow(max_size=self.window_size)
@@ -169,7 +171,7 @@ class WeightedRollingTracker:
 
     def compute_metrics(
         self, instruments: list[Instrument]
-    ) -> Mapping[Instrument, dict]:
+    ) -> Mapping[Instrument, dict[str, float | int]]:
         """
         Compute weighted performance metrics for given instruments.
 
@@ -194,13 +196,13 @@ class WeightedRollingTracker:
             str(inst) not in self._cached_metrics for inst in instruments
         )
 
-        if not need_recompute:
+        if not need_recompute and self._cached_metrics is not None:
             # All requested instruments are in cache
             return {inst: self._cached_metrics[str(inst)] for inst in instruments}
 
         # Compute fresh metrics for ALL instruments in windows (not just requested)
         # This ensures cache is complete for future calls
-        all_metrics: dict[str, dict] = {}
+        all_metrics: dict[str, dict[str, float | int]] = {}
 
         for instrument, window in self._windows.items():
             trades = window.get_trades()
@@ -232,7 +234,7 @@ class WeightedRollingTracker:
         self._cached_metrics = all_metrics
 
         # Return metrics for requested instruments
-        metrics_by_instrument: dict[Instrument, dict] = {}
+        metrics_by_instrument: dict[Instrument, dict[str, float | int]] = {}
 
         for inst in instruments:
             instrument = str(inst)
@@ -242,7 +244,7 @@ class WeightedRollingTracker:
 
         return metrics_by_instrument
 
-    def _apply_decay_weights(self, trades: list[dict]) -> list[float]:
+    def _apply_decay_weights(self, trades: list[dict[str, str | float]]) -> list[float]:
         """
         Apply decay weights to trades based on position in window.
 
@@ -296,7 +298,7 @@ class WeightedRollingTracker:
 
         return weighted_pnls
 
-    def _empty_metrics(self) -> dict:
+    def _empty_metrics(self) -> dict[str, float | int]:
         """Return empty metrics for instruments with no data."""
         return {
             "return_to_risk_ratio": 0.0,

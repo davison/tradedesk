@@ -62,7 +62,9 @@ class PortfolioRunner:
         Args:
             event: Candle close event with instrument, period, and candle data
         """
-        strat = self.strategies.get(event.instrument)
+        from .types import Instrument
+
+        strat = self.strategies.get(Instrument(event.instrument))
         if strat is None:
             return
 
