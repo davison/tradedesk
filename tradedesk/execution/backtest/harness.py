@@ -9,7 +9,6 @@ from tradedesk.recording import compute_metrics
 from tradedesk.strategy import BaseStrategy
 
 from tradedesk.recording.ledger import TradeLedger
-from tradedesk.recording.client import RecordingClient
 from tradedesk.recording.types import EquityRecord
 
 
@@ -57,7 +56,6 @@ async def run_backtest(
                 c.close += adj
 
     ledger = TradeLedger()
-    client = RecordingClient(raw_client, ledger=ledger)
 
     strat = strategy_factory(raw_client)
 

@@ -9,7 +9,10 @@ from dataclasses import dataclass
 from typing import Any, NewType, Protocol, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from tradedesk.execution.position import PositionTracker
+    from tradedesk.marketdata import Candle
     from tradedesk.marketdata.events import CandleClosedEvent
+    from tradedesk.recording.journal import JournalEntry
 
 Instrument = NewType("Instrument", str)
 
@@ -93,5 +96,32 @@ class PortfolioStrategy(Protocol):
 
         At this point, all indicators and regime state reflect the latest
         candle, and risk_per_trade reflects the current portfolio allocation.
+        """
+        ...
+
+
+class ReconcilableStrategy(Protocol):
+    """Protocol for strategies that support position reconciliation.
+
+    Implementations handle their own serialisation and exit logic so that
+    ``ReconciliationManager`` stays strategy-agnostic.
+    """
+
+    position: "PositionTracker"
+
+    def to_journal_entry(self, instrument: str) -> "JournalEntry":
+        """Serialise position and strategy-specific state to a journal entry."""
+        ...
+
+    def restore_from_journal(self, entry: "JournalEntry") -> None:
+        """Restore position and strategy-specific state from a journal entry."""
+        ...
+
+    async def check_restored_position(self, candle: "Candle") -> None:
+        """Evaluate exit conditions on a restored or adopted position.
+
+        Called after warmup on positions restored from journal or adopted
+        from broker.  The strategy should check stop-loss, take-profit,
+        regime-off etc. and exit if warranted.
         """
         ...
