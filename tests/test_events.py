@@ -3,7 +3,7 @@ from tradedesk.events import DomainEvent, EventDispatcher, event, get_dispatcher
 
 
 @event
-class TestEvent(DomainEvent):
+class SampleEvent(DomainEvent):
     """Test event for unit tests."""
 
     message: str
@@ -30,11 +30,11 @@ class TestEventDispatcher:
         dispatcher = EventDispatcher()
         called_with = []
 
-        def handler(event: TestEvent):
+        def handler(event: SampleEvent):
             called_with.append(event)
 
-        dispatcher.subscribe(TestEvent, handler)
-        event_instance = TestEvent(message="hello")
+        dispatcher.subscribe(SampleEvent, handler)
+        event_instance = SampleEvent(message="hello")
         await dispatcher.publish(event_instance)
 
         assert len(called_with) == 1
@@ -46,11 +46,11 @@ class TestEventDispatcher:
         dispatcher = EventDispatcher()
         called_with = []
 
-        async def handler(event: TestEvent):
+        async def handler(event: SampleEvent):
             called_with.append(event)
 
-        dispatcher.subscribe(TestEvent, handler)
-        event_instance = TestEvent(message="hello")
+        dispatcher.subscribe(SampleEvent, handler)
+        event_instance = SampleEvent(message="hello")
         await dispatcher.publish(event_instance)
 
         assert len(called_with) == 1
@@ -62,20 +62,20 @@ class TestEventDispatcher:
         dispatcher = EventDispatcher()
         calls = []
 
-        def handler1(event: TestEvent):
+        def handler1(event: SampleEvent):
             calls.append(("handler1", event))
 
-        async def handler2(event: TestEvent):
+        async def handler2(event: SampleEvent):
             calls.append(("handler2", event))
 
-        def handler3(event: TestEvent):
+        def handler3(event: SampleEvent):
             calls.append(("handler3", event))
 
-        dispatcher.subscribe(TestEvent, handler1)
-        dispatcher.subscribe(TestEvent, handler2)
-        dispatcher.subscribe(TestEvent, handler3)
+        dispatcher.subscribe(SampleEvent, handler1)
+        dispatcher.subscribe(SampleEvent, handler2)
+        dispatcher.subscribe(SampleEvent, handler3)
 
-        event_instance = TestEvent(message="test")
+        event_instance = SampleEvent(message="test")
         await dispatcher.publish(event_instance)
 
         assert len(calls) == 3
@@ -89,16 +89,16 @@ class TestEventDispatcher:
         dispatcher = EventDispatcher()
         calls = []
 
-        def failing_handler(event: TestEvent):
+        def failing_handler(event: SampleEvent):
             raise ValueError("Handler failed")
 
-        def successful_handler(event: TestEvent):
+        def successful_handler(event: SampleEvent):
             calls.append(event)
 
-        dispatcher.subscribe(TestEvent, failing_handler)
-        dispatcher.subscribe(TestEvent, successful_handler)
+        dispatcher.subscribe(SampleEvent, failing_handler)
+        dispatcher.subscribe(SampleEvent, successful_handler)
 
-        event_instance = TestEvent(message="test")
+        event_instance = SampleEvent(message="test")
         await dispatcher.publish(event_instance)
 
         # Second handler should still run despite first one failing
@@ -111,16 +111,16 @@ class TestEventDispatcher:
         dispatcher = EventDispatcher()
         calls = []
 
-        async def failing_handler(event: TestEvent):
+        async def failing_handler(event: SampleEvent):
             raise ValueError("Async handler failed")
 
-        async def successful_handler(event: TestEvent):
+        async def successful_handler(event: SampleEvent):
             calls.append(event)
 
-        dispatcher.subscribe(TestEvent, failing_handler)
-        dispatcher.subscribe(TestEvent, successful_handler)
+        dispatcher.subscribe(SampleEvent, failing_handler)
+        dispatcher.subscribe(SampleEvent, successful_handler)
 
-        event_instance = TestEvent(message="test")
+        event_instance = SampleEvent(message="test")
         await dispatcher.publish(event_instance)
 
         # Second handler should still run despite first one failing
@@ -134,16 +134,16 @@ class TestEventDispatcher:
         test_calls = []
         another_calls = []
 
-        def test_handler(event: TestEvent):
+        def test_handler(event: SampleEvent):
             test_calls.append(event)
 
         def another_handler(event: AnotherTestEvent):
             another_calls.append(event)
 
-        dispatcher.subscribe(TestEvent, test_handler)
+        dispatcher.subscribe(SampleEvent, test_handler)
         dispatcher.subscribe(AnotherTestEvent, another_handler)
 
-        test_event = TestEvent(message="test")
+        test_event = SampleEvent(message="test")
         another_event = AnotherTestEvent(value=42)
 
         await dispatcher.publish(test_event)
@@ -158,14 +158,14 @@ class TestEventDispatcher:
         """Test unsubscribing a handler."""
         dispatcher = EventDispatcher()
 
-        def handler(event: TestEvent):
+        def handler(event: SampleEvent):
             pass
 
-        dispatcher.subscribe(TestEvent, handler)
-        assert handler in dispatcher._handlers[TestEvent]
+        dispatcher.subscribe(SampleEvent, handler)
+        assert handler in dispatcher._handlers[SampleEvent]
 
-        dispatcher.unsubscribe(TestEvent, handler)
-        assert handler not in dispatcher._handlers[TestEvent]
+        dispatcher.unsubscribe(SampleEvent, handler)
+        assert handler not in dispatcher._handlers[SampleEvent]
 
     @pytest.mark.asyncio
     async def test_unsubscribe_prevents_handler_invocation(self):
@@ -173,13 +173,13 @@ class TestEventDispatcher:
         dispatcher = EventDispatcher()
         calls = []
 
-        def handler(event: TestEvent):
+        def handler(event: SampleEvent):
             calls.append(event)
 
-        dispatcher.subscribe(TestEvent, handler)
-        dispatcher.unsubscribe(TestEvent, handler)
+        dispatcher.subscribe(SampleEvent, handler)
+        dispatcher.unsubscribe(SampleEvent, handler)
 
-        event_instance = TestEvent(message="test")
+        event_instance = SampleEvent(message="test")
         await dispatcher.publish(event_instance)
 
         assert len(calls) == 0
@@ -188,7 +188,7 @@ class TestEventDispatcher:
     async def test_publish_with_no_handlers(self):
         """Test publishing an event with no registered handlers."""
         dispatcher = EventDispatcher()
-        event_instance = TestEvent(message="test")
+        event_instance = SampleEvent(message="test")
 
         # Should not raise any exception
         await dispatcher.publish(event_instance)
@@ -228,14 +228,14 @@ class TestGetDispatcher:
 
         calls = []
 
-        def handler(event: TestEvent):
+        def handler(event: SampleEvent):
             calls.append(event)
 
         dispatcher1 = get_dispatcher()
-        dispatcher1.subscribe(TestEvent, handler)
+        dispatcher1.subscribe(SampleEvent, handler)
 
         dispatcher2 = get_dispatcher()
-        event_instance = TestEvent(message="test")
+        event_instance = SampleEvent(message="test")
         await dispatcher2.publish(event_instance)
 
         assert len(calls) == 1
