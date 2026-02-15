@@ -3,12 +3,16 @@
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
+from tradedesk.events import DomainEvent
 from tradedesk.execution import BrokerPosition, Direction
 from tradedesk.portfolio.runner import PortfolioRunner
 from tradedesk.portfolio.types import Instrument, ReconcilableStrategy
 from tradedesk.recording.journal import JournalEntry, PositionJournal
+
+if TYPE_CHECKING:
+    from tradedesk.marketdata.events import CandleClosedEvent
 
 log = logging.getLogger(__name__)
 
@@ -260,9 +264,10 @@ class ReconciliationManager:
                 target_period,
             )
 
-    async def _on_candle_closed(self, event) -> None:
+    async def _on_candle_closed(self, event: DomainEvent) -> None:
         """Handle target-period candle events for periodic reconciliation."""
-        if event.timeframe != self._target_period:
+        from tradedesk.marketdata.events import CandleClosedEvent
+        if not isinstance(event, CandleClosedEvent) or event.timeframe != self._target_period:
             return
 
         # Increment candle counter

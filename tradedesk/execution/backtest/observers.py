@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from tradedesk.events import DomainEvent
 from tradedesk.execution.backtest.reporting import compute_equity
 from tradedesk.recording import RoundTrip, round_trips_from_fills
 from tradedesk.recording.ledger import TradeLedger, trade_rows_from_trades
@@ -18,6 +19,7 @@ from tradedesk.time_utils import candle_with_iso_timestamp, parse_timestamp
 
 if TYPE_CHECKING:
     from tradedesk.marketdata import Candle
+    from tradedesk.marketdata.events import CandleClosedEvent
 
 log = logging.getLogger(__name__)
 
@@ -57,9 +59,10 @@ class BacktestRecorder:
                 target_period,
             )
 
-    def _on_candle_closed(self, event) -> None:
+    def _on_candle_closed(self, event: DomainEvent) -> None:
         """Handle target-period candle events for equity sampling."""
-        if self._target_period is not None and event.timeframe == self._target_period:
+        from tradedesk.marketdata.events import CandleClosedEvent
+        if isinstance(event, CandleClosedEvent) and self._target_period is not None and event.timeframe == self._target_period:
             self.sample_equity(event.candle, self._client)
 
     def sample_equity(self, candle: Candle, client: Any) -> None:
@@ -100,9 +103,10 @@ class ProgressLogger:
                 target_period,
             )
 
-    def _on_candle_closed(self, event) -> None:
+    def _on_candle_closed(self, event: DomainEvent) -> None:
         """Handle target-period candle events for progress logging."""
-        if self._target_period is not None and event.timeframe == self._target_period:
+        from tradedesk.marketdata.events import CandleClosedEvent
+        if isinstance(event, CandleClosedEvent) and self._target_period is not None and event.timeframe == self._target_period:
             self.on_candle(event.candle)
 
     def on_candle(self, candle: Candle) -> None:
@@ -151,9 +155,10 @@ class TrackerSync:
                 target_period,
             )
 
-    def _on_candle_closed(self, event) -> None:
+    def _on_candle_closed(self, event: DomainEvent) -> None:
         """Handle target-period candle events for tracker sync."""
-        if self._target_period is not None and event.timeframe == self._target_period:
+        from tradedesk.marketdata.events import CandleClosedEvent
+        if isinstance(event, CandleClosedEvent) and self._target_period is not None and event.timeframe == self._target_period:
             self.sync()
 
     def sync(self) -> None:
