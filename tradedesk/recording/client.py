@@ -38,16 +38,16 @@ class RecordingClient:
         instrument: str,
         direction: str,
         size: float,
-        **kwargs,
+        **kwargs: Any,
     ) -> dict[str, Any]:
-        resp = await self._inner.place_market_order(
+        resp: dict[str, Any] = await self._inner.place_market_order(
             instrument=instrument, direction=direction, size=size, **kwargs
         )
         self._record_trade(
             instrument=instrument,
             direction=direction,
             size=size,
-            price=resp.get("price", None),
+            price=resp.get("price") or 0.0,
             reason="market_order",
         )
         return resp
@@ -57,16 +57,16 @@ class RecordingClient:
         instrument: str,
         direction: str,
         size: float,
-        **kwargs,
+        **kwargs: Any,
     ) -> dict[str, Any]:
-        resp = await self._inner.place_market_order_confirmed(
+        resp: dict[str, Any] = await self._inner.place_market_order_confirmed(
             instrument=instrument, direction=direction, size=size, **kwargs
         )
         self._record_trade(
             instrument=instrument,
             direction=direction,
             size=size,
-            price=resp.get("price", None),
+            price=resp.get("price") or 0.0,
             reason="market_order",
         )
         return resp
@@ -76,17 +76,14 @@ class RecordingClient:
         instrument: str,
         direction: str,
         size: float,
-        price: float,
+        price: float | None,
         reason: str,
     ) -> None:
-        if price is None:
+        if price is None or price == 0.0:
             # fallback to mark price if available
             get_mark = getattr(self._inner, "get_mark_price", None)
-            price = (
-                float(get_mark(instrument))
-                if callable(get_mark) and get_mark(instrument) is not None
-                else 0.0
-            )
+            mark_value = get_mark(instrument) if callable(get_mark) else None
+            price = float(mark_value) if mark_value is not None else 0.0
 
         ts = self._current_timestamp()
         self._ledger.record_trade(

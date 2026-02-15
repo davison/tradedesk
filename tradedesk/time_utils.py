@@ -84,7 +84,7 @@ def candle_with_ms_timestamp(candle: Candle) -> Candle:
     ts = candle.timestamp
     if isinstance(ts, (int, float)):
         return replace(candle, timestamp=int(ts))
-    return replace(candle, timestamp=iso_to_ms(str(ts)))
+    return replace(candle, timestamp=iso_to_ms(str(ts)))  # type: ignore[arg-type]
 
 
 def candle_with_iso_timestamp(candle: Candle) -> Candle:
