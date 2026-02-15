@@ -6,6 +6,7 @@ from .metrics_tracker import InstrumentWindow, WeightedRollingTracker
 from .reconciliation import (
     DiscrepancyType,
     ReconciliationEntry,
+    ReconciliationManager,
     ReconciliationResult,
     reconcile,
 )
@@ -14,6 +15,7 @@ from .runner import PortfolioRunner
 from .types import (
     Instrument,
     PortfolioStrategy,
+    ReconcilableStrategy,
     StrategySpec,
 )
 
@@ -27,7 +29,9 @@ __all__ = [
     "PortfolioConfig",
     "PortfolioRunner",
     "PortfolioStrategy",
+    "ReconcilableStrategy",
     "ReconciliationEntry",
+    "ReconciliationManager",
     "ReconciliationResult",
     "RiskAllocationPolicy",
     "StrategySpec",
