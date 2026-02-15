@@ -237,6 +237,7 @@ class ReconciliationManager:
         journal: PositionJournal | None,
         target_period: str,
         reconcile_interval: int = 4,
+        enable_event_subscription: bool = True,
     ):
         self._runner = runner
         self.client = client
@@ -245,6 +246,39 @@ class ReconciliationManager:
         self._reconcile_interval = reconcile_interval
         self._candle_count: int = 0
         self._recently_changed_instruments: set[str] = set()
+        self._enable_event_subscription = enable_event_subscription
+
+        # Self-subscribe to events if enabled
+        if enable_event_subscription:
+            from tradedesk.events import get_dispatcher
+            from tradedesk.marketdata.events import CandleClosedEvent
+
+            dispatcher = get_dispatcher()
+            dispatcher.subscribe(CandleClosedEvent, self._on_candle_closed)
+            log.debug(
+                "ReconciliationManager subscribed to CandleClosedEvent (target_period=%s)",
+                target_period,
+            )
+
+    async def _on_candle_closed(self, event) -> None:
+        """Handle target-period candle events for periodic reconciliation."""
+        if event.timeframe != self._target_period:
+            return
+
+        # Increment candle counter
+        self._candle_count += 1
+
+        # Check if reconciliation needed
+        if self._should_reconcile_now():
+            await self.periodic_reconcile()
+            await self.log_margin_status()
+
+    def _should_reconcile_now(self) -> bool:
+        """Internal check if reconciliation threshold reached (without incrementing)."""
+        return (
+            self._journal is not None
+            and self._candle_count % self._reconcile_interval == 0
+        )
 
     # ------------------------------------------------------------------
     # Startup reconciliation
@@ -681,12 +715,17 @@ class ReconciliationManager:
     # ------------------------------------------------------------------
 
     def should_reconcile(self) -> bool:
-        """Return True if enough candles have passed for a periodic check."""
-        self._candle_count += 1
-        return (
-            self._journal is not None
-            and self._candle_count % self._reconcile_interval == 0
-        )
+        """Return True if enough candles have passed for a periodic check.
+
+        Note: If event subscription is disabled (backward compat mode), this
+        method increments the counter. If event subscription is enabled, the
+        counter is managed by the event handler.
+        """
+        # Only increment counter if not using event subscription (backward compat)
+        if not self._enable_event_subscription:
+            self._candle_count += 1
+
+        return self._should_reconcile_now()
 
     # ------------------------------------------------------------------
     # Margin logging

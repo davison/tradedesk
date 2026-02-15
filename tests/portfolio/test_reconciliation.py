@@ -227,6 +227,7 @@ class TestReconciliationManager:
             journal=mock_journal,
             target_period="15MINUTE",
             reconcile_interval=2,
+            enable_event_subscription=False,  # Disable for unit tests
         )
 
     @pytest.mark.asyncio
