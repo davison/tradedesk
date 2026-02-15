@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from tradedesk.execution.backtest.observers import (
     BacktestRecorder,
     ProgressLogger,
@@ -23,44 +21,6 @@ def _candle(ts="2025-01-15T12:00:00Z"):
 # ---------------------------------------------------------------------------
 
 class TestBacktestRecorder:
-
-    def test_record_snapshots_regime_active(self):
-        ledger = TradeLedger()
-        recorder = BacktestRecorder(ledger)
-
-        strategy = MagicMock()
-        strategy.is_regime_active.return_value = True
-        strategies = {"USDJPY": strategy}
-
-        recorder.record_snapshots("USDJPY", _candle(), strategies=strategies)
-
-        assert "USDJPY" in ledger.opportunity.per_instrument
-        assert ledger.opportunity.per_instrument["USDJPY"].regime_active_bars == 1
-
-    def test_record_snapshots_regime_inactive(self):
-        ledger = TradeLedger()
-        recorder = BacktestRecorder(ledger)
-
-        strategy = MagicMock()
-        strategy.is_regime_active.return_value = False
-        strategies = {"USDJPY": strategy}
-
-        recorder.record_snapshots("USDJPY", _candle(), strategies=strategies)
-
-        assert ledger.opportunity.per_instrument["USDJPY"].regime_active_bars == 0
-
-    def test_record_snapshots_k_active(self):
-        ledger = TradeLedger()
-        recorder = BacktestRecorder(ledger)
-
-        s1 = MagicMock()
-        s1.is_regime_active.return_value = True
-        s2 = MagicMock()
-        s2.is_regime_active.return_value = False
-        strategies = {"A": s1, "B": s2}
-
-        recorder.record_snapshots("A", _candle(), strategies=strategies)
-        assert ledger.opportunity.k_active_series()[-1] == 1
 
     def test_sample_equity(self):
         ledger = TradeLedger()

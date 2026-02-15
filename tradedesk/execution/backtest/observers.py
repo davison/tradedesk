@@ -33,30 +33,6 @@ class BacktestRecorder:
     def __init__(self, ledger: TradeLedger) -> None:
         self._ledger = ledger
 
-    def record_snapshots(
-        self, instrument: str, candle: Candle, *, strategies: dict[Any, Any]
-    ) -> None:
-        """Record per-instrument regime activity and portfolio-level k_active."""
-        ts = candle_with_iso_timestamp(candle).timestamp
-
-        s = strategies.get(instrument) or strategies.get(
-            # PortfolioRunner keys by Instrument; try both str and Instrument
-            next((k for k in strategies if str(k) == instrument), None)
-        )
-        if s is not None:
-            self._ledger.opportunity.on_instrument_bar(
-                instrument=instrument,
-                timestamp=ts,
-                active=bool(getattr(s, "is_regime_active", lambda: False)()),
-            )
-
-        k_active = sum(
-            1
-            for st in strategies.values()
-            if getattr(st, "is_regime_active", lambda: False)()
-        )
-        self._ledger.opportunity.on_portfolio_snapshot(timestamp=ts, k_active=k_active)
-
     def sample_equity(self, candle: Candle, client: Any) -> None:
         """Sample current equity from the backtest client into the ledger."""
         inner = getattr(client, "_inner", None)
