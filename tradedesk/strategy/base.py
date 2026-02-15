@@ -389,17 +389,18 @@ class BaseStrategy(abc.ABC):
         # Get the global event dispatcher
         dispatcher = get_dispatcher()
 
-        # Dispatch to event bus first, then call callbacks
+        # Dispatch to event bus AND call callbacks
+        # (Callbacks are for strategy logic; event bus is for cross-cutting concerns)
         if isinstance(event, MarketData):
             # Wrap MarketData in event and dispatch to event bus
             await dispatcher.publish(MarketDataReceivedEvent(data=event))
-            # Call callback for backwards compatibility
+            # Call callback (stores candles in chart history, strategy logic)
             await self.on_price_update(event)
 
         elif isinstance(event, CandleClosedEvent):
             # Dispatch event to event bus
             await dispatcher.publish(event)
-            # Call callback for backwards compatibility
+            # Call callback (stores candles in chart history, strategy logic)
             await self.on_candle_close(event)
 
         else:
