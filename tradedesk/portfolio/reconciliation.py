@@ -3,10 +3,11 @@
 import logging
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, cast
 
 from tradedesk.execution import BrokerPosition, Direction
 from tradedesk.portfolio.runner import PortfolioRunner
-from tradedesk.portfolio.types import Instrument
+from tradedesk.portfolio.types import Instrument, ReconcilableStrategy
 from tradedesk.recording.journal import JournalEntry, PositionJournal
 
 log = logging.getLogger(__name__)
@@ -232,7 +233,7 @@ class ReconciliationManager:
         self,
         *,
         runner: PortfolioRunner,
-        client,
+        client: Any,
         journal: PositionJournal | None,
         target_period: str,
         reconcile_interval: int = 4,
@@ -263,8 +264,8 @@ class ReconciliationManager:
         journal_entries = self._journal.load()
         journal_positions: dict[str, JournalEntry] = {}
         if journal_entries is not None:
-            for entry in journal_entries:
-                journal_positions[entry.instrument] = entry
+            for j_entry in journal_entries:
+                journal_positions[j_entry.instrument] = j_entry
             open_count = sum(1 for e in journal_entries if e.direction is not None)
             log.info(
                 "Journal loaded: %d entries (%d open, %d flat)",
@@ -365,7 +366,8 @@ class ReconciliationManager:
     ) -> set[str]:
         """Restore positions from journal only (broker unreachable)."""
         restored: set[str] = set()
-        for inst, strat in self._runner.strategies.items():
+        for inst, s in self._runner.strategies.items():
+            strat = cast(ReconcilableStrategy, s)
             epic = str(inst)
             entry = journal_positions.get(epic)
             if entry is None or entry.direction is None:
@@ -385,7 +387,7 @@ class ReconciliationManager:
         self,
         result: ReconciliationResult,
         journal_positions: dict[str, JournalEntry],
-        broker_positions: list,
+        broker_positions: list[BrokerPosition],
     ) -> set[str]:
         """Apply reconciliation decisions and restore positions into strategies.
 
@@ -394,7 +396,8 @@ class ReconciliationManager:
         broker_by_instrument = {bp.instrument: bp for bp in broker_positions}
         restored: set[str] = set()
 
-        for inst, strat in self._runner.strategies.items():
+        for inst, s in self._runner.strategies.items():
+            strat = cast(ReconcilableStrategy, s)
             epic = str(inst)
             entry = next((e for e in result.entries if e.instrument == epic), None)
             if entry is None:
@@ -487,7 +490,8 @@ class ReconciliationManager:
         or adopted might be stale (e.g. stop-loss breached, regime deactivated).
         This method checks each one and exits immediately if warranted.
         """
-        for inst, strat in self._runner.strategies.items():
+        for inst, s in self._runner.strategies.items():
+            strat = cast(ReconcilableStrategy, s)
             epic = str(inst)
             if epic not in restored_instruments:
                 continue
@@ -537,7 +541,8 @@ class ReconciliationManager:
             return
 
         entries = []
-        for inst, strat in self._runner.strategies.items():
+        for inst, s in self._runner.strategies.items():
+            strat = cast(ReconcilableStrategy, s)
             entries.append(strat.to_journal_entry(str(inst)))
 
         self._journal.save(entries)
@@ -558,7 +563,8 @@ class ReconciliationManager:
 
         # Build current local state
         journal_positions: dict[str, JournalEntry] = {}
-        for inst, strat in self._runner.strategies.items():
+        for inst, s in self._runner.strategies.items():
+            strat = cast(ReconcilableStrategy, s)
             epic = str(inst)
             journal_positions[epic] = strat.to_journal_entry(epic)
 
@@ -592,9 +598,10 @@ class ReconciliationManager:
             if entry.discrepancy == DiscrepancyType.MATCHED:
                 continue
 
-            strat = self._runner.strategies.get(Instrument(entry.instrument))
-            if strat is None:
+            maybe_strat = self._runner.strategies.get(Instrument(entry.instrument))
+            if maybe_strat is None:
                 continue
+            strat = cast(ReconcilableStrategy, maybe_strat)
 
             if entry.discrepancy == DiscrepancyType.PHANTOM_LOCAL:
                 # Broker has no position -- reset local to flat
